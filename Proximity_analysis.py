@@ -702,7 +702,7 @@ def get_mock_places(coords, place_type, limit=5, delivery_partners=False):
     return places
 
 # Modify the find_nearest_locations function to include delivery partners
-def find_nearest_locations(address, geolocator, cache, categories, use_miles=False):
+def find_nearest_locations(address, geolocator, cache, categories, use_miles=False, delivery_partners=False):
     # Geocode the input address
     coords = get_lat_long_with_retry(address, geolocator, cache)
     if not coords:
@@ -719,7 +719,8 @@ def find_nearest_locations(address, geolocator, cache, categories, use_miles=Fal
         category_mapping = {
             "gas_stations": "fuel",
             "convenience_stores": "convenience",
-            "restaurants": "restaurant"
+            "restaurants": "restaurant",
+            "delivery_partners": "convenience"  # Use convenience as the base type for delivery partners
         }
         
         # For each requested category, find the nearest locations
@@ -727,8 +728,8 @@ def find_nearest_locations(address, geolocator, cache, categories, use_miles=Fal
             # Get the OpenStreetMap amenity type for this category
             osm_type = category_mapping.get(category, category)
             
-            # For convenience stores, always include delivery partner info
-            is_delivery = (category == "convenience_stores")
+            # Check if we're looking for delivery partners
+            is_delivery = category == "delivery_partners"
             
             # Search for nearby places of this type
             places = search_nearby_places_osm(coords, osm_type, radius=2000, delivery_partners=is_delivery)
@@ -761,7 +762,7 @@ def find_nearest_locations(address, geolocator, cache, categories, use_miles=Fal
         logging.error(f"Error finding nearby locations: {e}")
         return None, f"Error finding nearby locations: {str(e)}"
 
-# Update the Streamlit interface to remove the delivery partners checkbox
+# Update the Streamlit interface to include the delivery partners option
 # Tab 2: Multi-category location search with OpenStreetMap
 with tab2:
     st.header("Find Nearby Locations")
@@ -777,6 +778,11 @@ with tab2:
         find_gas = st.checkbox("Gas Stations", value=True)
     with col2:
         find_convenience = st.checkbox("Convenience Stores", value=True)
+        # Add delivery partners option under convenience stores
+        if find_convenience:
+            find_delivery = st.checkbox("Delivery Partners (UberEats, DoorDash, etc.)", value=False)
+        else:
+            find_delivery = False
     with col3:
         find_restaurants = st.checkbox("Restaurants", value=True)
     
@@ -796,12 +802,12 @@ with tab2:
     - If a location isn't showing up, it might not be mapped in OpenStreetMap yet
     """)
     
-    # Add a note about convenience stores and delivery
-    if find_convenience:
+    # Add a note about delivery partners
+    if find_delivery:
         st.info("""
-        **About Convenience Stores:**
-        - Results include stores that partner with delivery services like UberEats, DoorDash, GrubHub, Gopuff, etc.
-        - Delivery service availability is shown when available
+        **About Delivery Partners:**
+        - The app identifies stores likely to partner with delivery services like UberEats, DoorDash, etc.
+        - This is based on store types that commonly offer delivery (convenience stores, pharmacies, etc.)
         - Actual delivery availability may vary and should be confirmed with the specific service
         """)
     
@@ -820,8 +826,10 @@ with tab2:
             selected_categories = []
             if find_gas:
                 selected_categories.append("gas_stations")
-            if find_convenience:
+            if find_convenience and not find_delivery:
                 selected_categories.append("convenience_stores")
+            if find_delivery:
+                selected_categories.append("delivery_partners")
             if find_restaurants:
                 selected_categories.append("restaurants")
             
@@ -843,7 +851,7 @@ with tab2:
                 # Show a spinner while processing
                 with st.spinner('Searching for nearby locations...'):
                     # Find the nearest locations for each category
-                    results, error = find_nearest_locations(single_address, geolocator, cache, selected_categories, use_miles)
+                    results, error = find_nearest_locations(single_address, geolocator, cache, selected_categories, use_miles, find_delivery)
                     
                     if error:
                         st.error(error)
@@ -879,6 +887,8 @@ with tab2:
                                     st.markdown("### Nearest Gas Station")
                                 elif category == "convenience_stores":
                                     st.markdown("### Nearest Convenience Store")
+                                elif category == "delivery_partners":
+                                    st.markdown("### Nearest Delivery Partner")
                                 elif category == "restaurants":
                                     st.markdown("### Nearest Restaurant")
                                 
@@ -891,8 +901,8 @@ with tab2:
                                     else:
                                         st.markdown(f"**Distance:** {location['distance']:.2f} km")
                                     
-                                    # Show delivery info if available and this is a convenience store
-                                    if category == "convenience_stores" and location.get('delivery_info'):
+                                    # Show delivery info if available
+                                    if location.get('delivery_info'):
                                         st.markdown(f"**Delivery:** {location['delivery_info']}")
                                 
                                 with col2:
@@ -905,6 +915,8 @@ with tab2:
                                     st.warning("No gas stations found nearby.")
                                 elif category == "convenience_stores":
                                     st.warning("No convenience stores found nearby.")
+                                elif category == "delivery_partners":
+                                    st.warning("No delivery partners found nearby.")
                                 elif category == "restaurants":
                                     st.warning("No restaurants found nearby.")
                         
