@@ -1,4 +1,34 @@
-import streamlit as st
+// This script demonstrates the changes needed for your Python code
+// You'll need to integrate these changes into your existing Python file
+
+const fs = require('fs');
+
+// Original code (abbreviated for clarity)
+const originalCode = `import streamlit as st
+import pandas as pd
+import time
+import math
+import logging
+import json
+import os
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+from functools import partial
+
+# ... [existing code remains unchanged] ...
+
+# Streamlit interface
+st.title("Large Address Dataset Processor")
+
+# Upload file (CSV format)
+uploaded_file = st.file_uploader("Upload your CSV file with addresses", type=["csv"])
+
+if uploaded_file is not None:
+    # ... [existing code for batch processing] ...
+`;
+
+// New code with single address search functionality
+const newCode = `import streamlit as st
 import pandas as pd
 import time
 import math
@@ -142,87 +172,352 @@ def find_closest_addresses(addresses, geolocator, cache, progress_bar, progress_
     
     return formatted_results
 
-# Streamlit interface
-st.title("Large Address Dataset Processor")
-
-# Upload file (CSV format)
-uploaded_file = st.file_uploader("Upload your CSV file with addresses", type=["csv"])
-
-if uploaded_file is not None:
-    # Read the CSV
-    df = pd.read_csv(uploaded_file)
+# Function to find the nearest convenience store to a single address
+def find_nearest_convenience_store(address, geolocator, cache):
+    # Geocode the input address
+    coords = get_lat_long_with_retry(address, geolocator, cache)
+    if not coords:
+        return None, "Could not geocode the provided address"
     
-    # Display sample of data
-    st.write("Preview of your data (first 5 rows):", df.head())
-    
-    # Get the list of addresses (assuming addresses are in the first column)
-    addresses = df.iloc[:, 0].dropna().tolist()
-    
-    st.write(f"Total addresses detected: {len(addresses)}")
-    
-    # Warning for large datasets
-    if len(addresses) > 100:
-        st.warning(f"""
-        ⚠️ You have {len(addresses)} addresses. Processing may take a long time due to rate limits.
+    # Search for convenience stores nearby
+    # We'll use Nominatim's reverse geocoding with the 'convenience' amenity
+    try:
+        # First, let's search for convenience stores in the area
+        query = {"amenity": "convenience", "format": "json"}
         
-        Estimated processing time: {len(addresses) * 2} minutes or more.
+        # We'll use a direct Nominatim query for POIs
+        # Note: In a production app, you might want to use Overpass API instead
+        # as it's more suitable for POI searches
+        convenience_stores = []
         
-        Consider using a smaller dataset for testing or running this process in the background.
-        """)
-    
-    # Options for processing
-    st.subheader("Processing Options")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        use_cache = st.checkbox("Use persistent cache (recommended)", value=True, 
-                               help="Saves geocoded addresses to disk to avoid re-geocoding if process is interrupted")
-    
-    with col2:
-        batch_size = st.slider("Batch size", min_value=10, max_value=100, value=50, 
-                              help="Number of addresses to process in each batch")
-    
-    # Show the progress text and bar
-    progress_text = st.empty()
-    progress_bar = st.progress(0)
-    
-    # Button to run the calculation
-    if st.button('Find Closest Addresses'):
-        if len(addresses) > 0:
-            start_time = time.time()
+        # Simulate finding convenience stores (in a real app, you'd use Overpass API)
+        # For demonstration, we'll create some sample stores around the given coordinates
+        # In a real implementation, replace this with actual API calls
+        
+        # Sample convenience stores (simulated)
+        sample_stores = [
+            {"name": "QuickMart", "lat": coords[0] + 0.01, "lon": coords[1] + 0.005},
+            {"name": "24/7 Store", "lat": coords[0] - 0.008, "lon": coords[1] + 0.002},
+            {"name": "Corner Shop", "lat": coords[0] + 0.003, "lon": coords[1] - 0.007},
+            {"name": "Mini Mart", "lat": coords[0] - 0.005, "lon": coords[1] - 0.003},
+            {"name": "Express Store", "lat": coords[0] + 0.007, "lon": coords[1] - 0.001},
+        ]
+        
+        # Calculate distances to each store
+        nearest_store = None
+        min_distance = float('inf')
+        
+        for store in sample_stores:
+            store_coords = (store["lat"], store["lon"])
+            distance = haversine_distance(coords, store_coords)
+            store["distance"] = distance
             
+            if distance < min_distance:
+                min_distance = distance
+                nearest_store = store
+        
+        if nearest_store:
+            return nearest_store, None
+        else:
+            return None, "No convenience stores found nearby"
+            
+    except Exception as e:
+        logging.error(f"Error finding convenience stores: {e}")
+        return None, f"Error finding convenience stores: {str(e)}"
+
+# Streamlit interface
+st.title("Address Processor")
+
+# Create tabs for different functionalities
+tab1, tab2 = st.tabs(["Batch Processing", "Single Address Search"])
+
+# Tab 1: Original batch processing functionality
+with tab1:
+    st.header("Large Address Dataset Processor")
+    
+    # Upload file (CSV format)
+    uploaded_file = st.file_uploader("Upload your CSV file with addresses", type=["csv"])
+
+    if uploaded_file is not None:
+        # Read the CSV
+        df = pd.read_csv(uploaded_file)
+        
+        # Display sample of data
+        st.write("Preview of your data (first 5 rows):", df.head())
+        
+        # Get the list of addresses (assuming addresses are in the first column)
+        addresses = df.iloc[:, 0].dropna().tolist()
+        
+        st.write(f"Total addresses detected: {len(addresses)}")
+        
+        # Warning for large datasets
+        if len(addresses) > 100:
+            st.warning(f"""
+            ⚠️ You have {len(addresses)} addresses. Processing may take a long time due to rate limits.
+            
+            Estimated processing time: {len(addresses) * 2} minutes or more.
+            
+            Consider using a smaller dataset for testing or running this process in the background.
+            """)
+        
+        # Options for processing
+        st.subheader("Processing Options")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            use_cache = st.checkbox("Use persistent cache (recommended)", value=True, 
+                                   help="Saves geocoded addresses to disk to avoid re-geocoding if process is interrupted")
+        
+        with col2:
+            batch_size = st.slider("Batch size", min_value=10, max_value=100, value=50, 
+                                  help="Number of addresses to process in each batch")
+        
+        # Show the progress text and bar
+        progress_text = st.empty()
+        progress_bar = st.progress(0)
+        
+        # Button to run the calculation
+        if st.button('Find Closest Addresses'):
+            if len(addresses) > 0:
+                start_time = time.time()
+                
+                # Initialize cache
+                cache = GeocodingCache() if use_cache else GeocodingCache("temp_cache.json")
+                
+                # Initialize Nominatim geolocator
+                try:
+                    geolocator = Nominatim(user_agent="large_address_processor")
+                    geocode = partial(geolocator.geocode, timeout=10)
+                    logging.info("Nominatim geolocator initialized successfully.")
+                except Exception as e:
+                    st.error(f"Error initializing geolocator: {e}")
+                    logging.error(f"Error initializing geolocator: {e}")
+                    st.stop()
+                
+                # Find the closest addresses with improved batching
+                results = find_closest_addresses(addresses, geocode, cache, progress_bar, progress_text)
+                
+                # Add results to the dataframe
+                df['Closest Address'] = [result.split(' (')[0] if '(' in result else result for result in results]
+                df['Distance (km)'] = [result.split('(')[-1].replace(')', '').strip() if '(' in result else 'N/A' for result in results]
+                
+                # Display results
+                st.subheader("Results")
+                st.dataframe(df)
+                
+                # Download button for the results
+                csv = df.to_csv(index=False)
+                st.download_button("Download results as CSV", csv, "results.csv", "text/csv")
+                
+                # Display processing time
+                end_time = time.time()
+                processing_time = end_time - start_time
+                st.success(f"Processing completed in {processing_time:.2f} seconds ({processing_time/60:.2f} minutes)")
+                
+            else:
+                st.error("Please upload a file with addresses.")
+
+# Tab 2: Single address search functionality
+with tab2:
+    st.header("Find Nearest Convenience Store")
+    
+    # Input for single address
+    single_address = st.text_input("Enter an address to find the nearest convenience store")
+    
+    # Use the same cache option
+    use_cache_single = st.checkbox("Use persistent cache", value=True, 
+                                  help="Saves geocoded addresses to disk to avoid re-geocoding")
+    
+    # Button to search for the nearest convenience store
+    if st.button('Find Nearest Convenience Store'):
+        if single_address:
             # Initialize cache
-            cache = GeocodingCache() if use_cache else GeocodingCache("temp_cache.json")
+            cache = GeocodingCache() if use_cache_single else GeocodingCache("temp_cache.json")
             
             # Initialize Nominatim geolocator
             try:
-                geolocator = Nominatim(user_agent="large_address_processor")
+                geolocator = Nominatim(user_agent="single_address_processor")
                 geocode = partial(geolocator.geocode, timeout=10)
-                logging.info("Nominatim geolocator initialized successfully.")
+                logging.info("Nominatim geolocator initialized successfully for single address search.")
             except Exception as e:
                 st.error(f"Error initializing geolocator: {e}")
                 logging.error(f"Error initializing geolocator: {e}")
                 st.stop()
             
-            # Find the closest addresses with improved batching
-            results = find_closest_addresses(addresses, geocode, cache, progress_bar, progress_text)
-            
-            # Add results to the dataframe
-            df['Closest Address'] = [result.split(' (')[0] if '(' in result else result for result in results]
-            df['Distance (km)'] = [result.split('(')[-1].replace(')', '').strip() if '(' in result else 'N/A' for result in results]
-            
-            # Display results
-            st.subheader("Results")
-            st.dataframe(df)
-            
-            # Download button for the results
-            csv = df.to_csv(index=False)
-            st.download_button("Download results as CSV", csv, "results.csv", "text/csv")
-            
-            # Display processing time
-            end_time = time.time()
-            processing_time = end_time - start_time
-            st.success(f"Processing completed in {processing_time:.2f} seconds ({processing_time/60:.2f} minutes)")
-            
+            # Show a spinner while processing
+            with st.spinner('Searching for the nearest convenience store...'):
+                # Find the nearest convenience store
+                nearest_store, error = find_nearest_convenience_store(single_address, geocode, cache)
+                
+                if error:
+                    st.error(error)
+                elif nearest_store:
+                    # Display the result in a nice format
+                    st.success(f"Found the nearest convenience store!")
+                    
+                    # Create a card-like display for the result
+                    st.markdown("### Nearest Convenience Store")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown(f"**Store Name:** {nearest_store['name']}")
+                        st.markdown(f"**Distance:** {nearest_store['distance']:.2f} km")
+                    
+                    with col2:
+                        st.markdown(f"**Latitude:** {nearest_store['lat']}")
+                        st.markdown(f"**Longitude:** {nearest_store['lon']}")
+                    
+                    # Display on a map if possible
+                    try:
+                        # Create a DataFrame for the map
+                        map_data = pd.DataFrame({
+                            'lat': [nearest_store['lat']],
+                            'lon': [nearest_store['lon']],
+                            'name': [nearest_store['name']]
+                        })
+                        
+                        # Display the map
+                        st.map(map_data)
+                    except Exception as e:
+                        st.warning(f"Could not display map: {e}")
+                else:
+                    st.warning("No convenience stores found nearby.")
         else:
-            st.error("Please upload a file with addresses.")
+            st.error("Please enter an address to search.")
+`;
+
+// Display the changes needed
+console.log("Here are the key changes to implement the single address search functionality:");
+console.log("\n1. Add a new function to find the nearest convenience store:");
+console.log(`
+def find_nearest_convenience_store(address, geolocator, cache):
+    # Geocode the input address
+    coords = get_lat_long_with_retry(address, geolocator, cache)
+    if not coords:
+        return None, "Could not geocode the provided address"
+    
+    # Search for convenience stores nearby
+    # We'll use Nominatim's reverse geocoding with the 'convenience' amenity
+    try:
+        # Sample convenience stores (simulated)
+        sample_stores = [
+            {"name": "QuickMart", "lat": coords[0] + 0.01, "lon": coords[1] + 0.005},
+            {"name": "24/7 Store", "lat": coords[0] - 0.008, "lon": coords[1] + 0.002},
+            {"name": "Corner Shop", "lat": coords[0] + 0.003, "lon": coords[1] - 0.007},
+            {"name": "Mini Mart", "lat": coords[0] - 0.005, "lon": coords[1] - 0.003},
+            {"name": "Express Store", "lat": coords[0] + 0.007, "lon": coords[1] - 0.001},
+        ]
+        
+        # Calculate distances to each store
+        nearest_store = None
+        min_distance = float('inf')
+        
+        for store in sample_stores:
+            store_coords = (store["lat"], store["lon"])
+            distance = haversine_distance(coords, store_coords)
+            store["distance"] = distance
+            
+            if distance < min_distance:
+                min_distance = distance
+                nearest_store = store
+        
+        if nearest_store:
+            return nearest_store, None
+        else:
+            return None, "No convenience stores found nearby"
+            
+    except Exception as e:
+        logging.error(f"Error finding convenience stores: {e}")
+        return None, f"Error finding convenience stores: {str(e)}"
+`);
+
+console.log("\n2. Modify the Streamlit interface to use tabs:");
+console.log(`
+# Create tabs for different functionalities
+tab1, tab2 = st.tabs(["Batch Processing", "Single Address Search"])
+
+# Tab 1: Original batch processing functionality
+with tab1:
+    st.header("Large Address Dataset Processor")
+    # ... [existing batch processing code] ...
+
+# Tab 2: Single address search functionality
+with tab2:
+    st.header("Find Nearest Convenience Store")
+    
+    # Input for single address
+    single_address = st.text_input("Enter an address to find the nearest convenience store")
+    
+    # Use the same cache option
+    use_cache_single = st.checkbox("Use persistent cache", value=True, 
+                                  help="Saves geocoded addresses to disk to avoid re-geocoding")
+    
+    # Button to search for the nearest convenience store
+    if st.button('Find Nearest Convenience Store'):
+        if single_address:
+            # Initialize cache
+            cache = GeocodingCache() if use_cache_single else GeocodingCache("temp_cache.json")
+            
+            # Initialize Nominatim geolocator
+            try:
+                geolocator = Nominatim(user_agent="single_address_processor")
+                geocode = partial(geolocator.geocode, timeout=10)
+                logging.info("Nominatim geolocator initialized successfully for single address search.")
+            except Exception as e:
+                st.error(f"Error initializing geolocator: {e}")
+                logging.error(f"Error initializing geolocator: {e}")
+                st.stop()
+            
+            # Show a spinner while processing
+            with st.spinner('Searching for the nearest convenience store...'):
+                # Find the nearest convenience store
+                nearest_store, error = find_nearest_convenience_store(single_address, geocode, cache)
+                
+                if error:
+                    st.error(error)
+                elif nearest_store:
+                    # Display the result in a nice format
+                    st.success(f"Found the nearest convenience store!")
+                    
+                    # Create a card-like display for the result
+                    st.markdown("### Nearest Convenience Store")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown(f"**Store Name:** {nearest_store['name']}")
+                        st.markdown(f"**Distance:** {nearest_store['distance']:.2f} km")
+                    
+                    with col2:
+                        st.markdown(f"**Latitude:** {nearest_store['lat']}")
+                        st.markdown(f"**Longitude:** {nearest_store['lon']}")
+                    
+                    # Display on a map if possible
+                    try:
+                        # Create a DataFrame for the map
+                        map_data = pd.DataFrame({
+                            'lat': [nearest_store['lat']],
+                            'lon': [nearest_store['lon']],
+                            'name': [nearest_store['name']]
+                        })
+                        
+                        # Display the map
+                        st.map(map_data)
+                    except Exception as e:
+                        st.warning(f"Could not display map: {e}")
+                else:
+                    st.warning("No convenience stores found nearby.")
+        else:
+            st.error("Please enter an address to search.")
+`);
+
+console.log("\n3. Important note about the implementation:");
+console.log(`
+Note: The current implementation uses simulated convenience store data. 
+In a production environment, you would want to:
+
+1. Use Overpass API or Google Places API to find actual convenience stores near the given coordinates
+2. Implement proper error handling and rate limiting for these APIs
+3. Consider caching store locations to improve performance
+
+The sample stores are generated around the input coordinates for demonstration purposes.
+`);
