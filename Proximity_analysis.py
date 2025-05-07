@@ -640,27 +640,26 @@ def find_nearest_locations(address, geolocator, cache, categories, use_miles=Fal
             places = search_nearby_places_osm(coords, osm_type, radius=2000)
             
             # Get the nearest place for this category
-            if places:
-                # Get addresses for places that need geocoding
-                for place in places:
-                    if place.get("needs_geocoding", False):
-                        place_coords = (place["lat"], place["lon"])
-                        place["address"] = get_address_from_coords(place_coords, geolocator)
-                        place["needs_geocoding"] = False
+            if places and len(places) > 0:
+                nearest_place = places[0]  # Just take the first (nearest) result
                 
-                # Convert distances to miles if requested
+                # Get address for place if it needs geocoding
+                if nearest_place.get("needs_geocoding", False):
+                    place_coords = (nearest_place["lat"], nearest_place["lon"])
+                    nearest_place["address"] = get_address_from_coords(place_coords, geolocator)
+                    nearest_place["needs_geocoding"] = False
+                
+                # Convert distance to miles if requested
                 if use_miles:
-                    for place in places:
-                        place["distance_miles"] = km_to_miles(place["distance"])
+                    nearest_place["distance_miles"] = km_to_miles(nearest_place["distance"])
                 
                 # Add user information
-                for place in places:
-                    place["user_address"] = complete_address
-                    place["user_coords"] = coords
+                nearest_place["user_address"] = complete_address
+                nearest_place["user_coords"] = coords
                 
-                results[category] = places
+                results[category] = nearest_place
             else:
-                results[category] = []
+                results[category] = None
         
         return results, None
             
@@ -848,9 +847,9 @@ with tab2:
                     elif results:
                         # Display the user's address
                         user_address = None
-                        for category, places in results.items():
-                            if places and len(places) > 0:
-                                user_address = places[0]["user_address"]
+                        for category, location in results.items():
+                            if location:
+                                user_address = location["user_address"]
                                 break
                         
                         if user_address:
@@ -860,43 +859,30 @@ with tab2:
                         # Display results for each category
                         for category in selected_categories:
                             if category in results and results[category]:
+                                location = results[category]
+                                
                                 # Create a nice header based on category
                                 if category == "gas_stations":
-                                    st.markdown("### Nearest Gas Stations")
+                                    st.markdown("### Nearest Gas Station")
                                 elif category == "convenience_stores":
-                                    st.markdown("### Nearest Convenience Stores")
+                                    st.markdown("### Nearest Convenience Store")
                                 elif category == "restaurants":
-                                    st.markdown("### Nearest Restaurants")
+                                    st.markdown("### Nearest Restaurant")
                                 
-                                # Display up to 3 locations for this category
-                                for i, location in enumerate(results[category][:3]):
-                                    # Create a subheader for each location
-                                    st.markdown(f"#### {i+1}. {location['name']}")
-                                    
-                                    # Display location details
-                                    col1, col2 = st.columns(2)
-                                    with col1:
-                                        if use_miles:
-                                            st.markdown(f"**Distance:** {location.get('distance_miles', km_to_miles(location['distance'])):.2f} miles")
-                                        else:
-                                            st.markdown(f"**Distance:** {location['distance']:.2f} km")
-                                        
-                                        if location.get('opening_hours'):
-                                            st.markdown(f"**Hours:** {location['opening_hours']}")
-                                    
-                                    with col2:
-                                        st.markdown(f"**Address:** {location['address']}")
-                                        if location.get('phone') and location['phone']:
-                                            st.markdown(f"**Phone:** {location['phone']}")
-                                        if location.get('website') and location['website']:
-                                            st.markdown(f"**Website:** [{location['website']}]({location['website']})")
-                                    
-                                    # Add a map link
-                                    map_url = f"https://www.openstreetmap.org/?mlat={location['lat']}&mlon={location['lon']}&zoom=16"
-                                    st.markdown(f"[View on OpenStreetMap]({map_url}) | [Get Directions](https://www.openstreetmap.org/directions?from={user_address}&to={location['lat']},{location['lon']})")
-                                    
-                                    # Add a separator
-                                    st.markdown("---")
+                                # Display location details
+                                col1, col2 = st.columns(2)
+                                with col1:
+                                    st.markdown(f"**Name:** {location['name']}")
+                                    if use_miles:
+                                        st.markdown(f"**Distance:** {location.get('distance_miles', km_to_miles(location['distance'])):.2f} miles")
+                                    else:
+                                        st.markdown(f"**Distance:** {location['distance']:.2f} km")
+                                
+                                with col2:
+                                    st.markdown(f"**Address:** {location['address']}")
+                                
+                                # Add a separator
+                                st.markdown("---")
                             else:
                                 if category == "gas_stations":
                                     st.warning("No gas stations found nearby.")
@@ -912,9 +898,9 @@ with tab2:
                             
                             # Add user location
                             user_coords = None
-                            for category, places in results.items():
-                                if places and len(places) > 0:
-                                    user_coords = places[0]["user_coords"]
+                            for category, location in results.items():
+                                if location:
+                                    user_coords = location["user_coords"]
                                     break
                             
                             if user_coords:
@@ -925,20 +911,17 @@ with tab2:
                                 })
                             
                             # Add all category locations
-                            for category, places in results.items():
-                                for place in places[:3]:  # Show top 3 from each category
+                            for category, location in results.items():
+                                if location:
                                     map_data.append({
-                                        'lat': place['lat'],
-                                        'lon': place['lon'],
-                                        'name': place['name']
+                                        'lat': location['lat'],
+                                        'lon': location['lon'],
+                                        'name': location['name']
                                     })
                             
                             if map_data:
                                 st.markdown("### Map of Nearby Locations")
                                 st.map(pd.DataFrame(map_data))
-                                
-                                # Add a note about the map
-                                st.caption("Note: The map shows your location and the nearest locations in each category.")
                         except Exception as e:
                             st.warning(f"Could not display map: {e}")
                     else:
