@@ -149,18 +149,26 @@ def find_nearest_convenience_store(address, geolocator, cache):
     if not coords:
         return None, "Could not geocode the provided address"
     
+    # Get the complete address from coordinates (reverse geocoding)
+    try:
+        location = geolocator.reverse(coords, exactly_one=True)
+        complete_address = location.address if location else "Unknown address"
+    except Exception as e:
+        logging.error(f"Error reverse geocoding: {e}")
+        complete_address = "Could not determine complete address"
+    
     # Search for convenience stores nearby
     try:
         # In a real implementation, you would use Overpass API or Google Places API
         # For demonstration, we'll create some sample stores around the given coordinates
         
-        # Sample convenience stores (simulated)
+        # Sample stores with more realistic names (simulated)
         sample_stores = [
-            {"name": "QuickMart", "lat": coords[0] + 0.01, "lon": coords[1] + 0.005},
-            {"name": "24/7 Store", "lat": coords[0] - 0.008, "lon": coords[1] + 0.002},
-            {"name": "Corner Shop", "lat": coords[0] + 0.003, "lon": coords[1] - 0.007},
-            {"name": "Mini Mart", "lat": coords[0] - 0.005, "lon": coords[1] - 0.003},
-            {"name": "Express Store", "lat": coords[0] + 0.007, "lon": coords[1] - 0.001},
+            {"name": "7-Eleven", "lat": coords[0] + 0.01, "lon": coords[1] + 0.005, "identified": True},
+            {"name": "Walgreens", "lat": coords[0] - 0.008, "lon": coords[1] + 0.002, "identified": True},
+            {"name": "CVS Pharmacy", "lat": coords[0] + 0.003, "lon": coords[1] - 0.007, "identified": True},
+            {"name": "Unidentified Store", "lat": coords[0] - 0.005, "lon": coords[1] - 0.003, "identified": False},
+            {"name": "Target Express", "lat": coords[0] + 0.007, "lon": coords[1] - 0.001, "identified": True},
         ]
         
         # Calculate distances to each store
@@ -172,18 +180,35 @@ def find_nearest_convenience_store(address, geolocator, cache):
             distance = haversine_distance(coords, store_coords)
             store["distance"] = distance
             
+            # Get the complete address for this store (reverse geocoding)
+            try:
+                store_location = geolocator.reverse(store_coords, exactly_one=True)
+                store["address"] = store_location.address if store_location else "Unknown address"
+            except Exception as e:
+                logging.error(f"Error reverse geocoding store: {e}")
+                store["address"] = "Could not determine store address"
+            
             if distance < min_distance:
                 min_distance = distance
                 nearest_store = store
         
         if nearest_store:
+            # If the store is not identified, change the display name
+            if not nearest_store.get("identified", True):
+                nearest_store["display_name"] = "Nearest Store (Unidentified)"
+            else:
+                nearest_store["display_name"] = nearest_store["name"]
+                
+            # Add the user's complete address to the result
+            nearest_store["user_address"] = complete_address
+            
             return nearest_store, None
         else:
-            return None, "No convenience stores found nearby"
+            return None, "No stores found nearby"
             
     except Exception as e:
-        logging.error(f"Error finding convenience stores: {e}")
-        return None, f"Error finding convenience stores: {str(e)}"
+        logging.error(f"Error finding stores: {e}")
+        return None, f"Error finding stores: {str(e)}"
 
 # Streamlit interface
 st.title("Address Processor")
@@ -322,6 +347,8 @@ with tab2:
                     with col1:
                         st.markdown(f"**Store Name:** {nearest_store['name']}")
                         st.markdown(f"**Distance:** {nearest_store['distance']:.2f} km")
+                        st.markdown(f"**User Address:** {nearest_store['user_address']}")
+                        st.markdown(f"**Store Address:** {nearest_store['address']}")
                     
                     with col2:
                         st.markdown(f"**Latitude:** {nearest_store['lat']}")
