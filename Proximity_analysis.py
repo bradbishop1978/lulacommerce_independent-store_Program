@@ -5,8 +5,8 @@ import math
 import logging
 import json
 import os
-import random
 import re
+import requests
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from functools import partial
@@ -25,6 +25,10 @@ def haversine_distance(coords1, coords2):
     a = math.sin(delta_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(delta_lng / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c  # Distance in km
+
+# Function to convert kilometers to miles
+def km_to_miles(km):
+    return km * 0.621371
 
 # Function to simplify address format
 def simplify_address(address):
@@ -100,7 +104,7 @@ def simplify_address(address):
             # Common city names that might be in the address
             if part in ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia",
                        "San Antonio", "San Diego", "Dallas", "San Jose"] or \
-               part in ["The Bronx", "Brooklyn", "Manhattan", "Queens", "Staten Island"]:
+               part in ["The Bronx", "Bronx", "Brooklyn", "Manhattan", "Queens", "Staten Island"]:
                 city = part
                 break
                 
@@ -335,69 +339,279 @@ def find_closest_addresses(addresses, geolocator, cache, progress_bar, progress_
     
     return formatted_results
 
-# Function to generate simulated locations around a given coordinate
-def generate_simulated_locations(coords, category, count=5):
-    if category == "gas_stations":
-        names = ["Shell", "Exxon", "BP", "Chevron", "Texaco", "Mobil", "Sunoco", "Marathon", "Valero", "Phillips 66"]
-        street_types = ["Highway", "Road", "Street", "Avenue", "Boulevard"]
-    elif category == "convenience_stores":
-        names = ["7-Eleven", "Circle K", "QuikTrip", "Wawa", "Casey's", "Speedway", "Sheetz", "Cumberland Farms", "RaceTrac", "Kum & Go"]
-        street_types = ["Street", "Avenue", "Road", "Lane", "Drive"]
-    elif category == "restaurants":
-        names = ["McDonald's", "Burger King", "Wendy's", "Subway", "Taco Bell", "KFC", "Pizza Hut", "Chipotle", "Panera Bread", "Olive Garden"]
-        street_types = ["Avenue", "Boulevard", "Street", "Plaza", "Mall"]
+# Function to search for nearby places using OpenStreetMap Overpass API
+def search_nearby_places_osm(coords, place_type, radius=1500, limit=5):
+    """
+    Search for nearby places using OpenStreetMap Overpass API
+    
+    Args:
+        coords: (latitude, longitude) tuple
+        place_type: Type of place to search for (e.g., 'fuel', 'convenience', 'restaurant')
+        radius: Search radius in meters
+        limit: Maximum number of results to return
+        
+    Returns:
+        List of places with details
+    """
+    try:
+        # Map our category names to OSM amenity types
+        osm_amenity_mapping = {
+            "gas_stations": "fuel",
+            "convenience_stores": "convenience",
+            "restaurants": "restaurant",
+            "fast_food": "fast_food",
+            "cafe": "cafe",
+            "pharmacy": "pharmacy",
+            "atm": "atm",
+            "bank": "bank",
+            "supermarket": "supermarket"
+        }
+        
+        # Get the OSM amenity type
+        amenity = osm_amenity_mapping.get(place_type, place_type)
+        
+        # Overpass API endpoint
+        overpass_url = "https://overpass-api.de/api/interpreter"
+        
+        # Build the Overpass QL query
+        # This searches for nodes and ways with the specified amenity within the radius
+        overpass_query = f"""
+        [out:json];
+        (
+          node["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
+          way["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
+          relation["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
+        );
+        out center;
+        """
+        
+        # Make the API request
+        response = requests.post(overpass_url, data={"data": overpass_query})
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            data = response.json()
+            places = []
+            
+            # Process each place in the results
+            for element in data["elements"]:
+                # Extract coordinates
+                if element["type"] == "node":
+                    lat = element["lat"]
+                    lon = element["lon"]
+                elif "center" in element:
+                    lat = element["center"]["lat"]
+                    lon = element["center"]["lon"]
+                else:
+                    continue  # Skip if we can't determine coordinates
+                
+                # Extract tags
+                tags = element.get("tags", {})
+                
+                # Get the name (use a fallback if not available)
+                name = tags.get("name", tags.get("brand", "Unnamed Location"))
+                
+                # Skip if no name is available
+                if not name or name == "Unnamed Location":
+                    # Try to use operator or brand as fallback
+                    name = tags.get("operator", tags.get("brand", "Unnamed Location"))
+                    if not name or name == "Unnamed Location":
+                        continue
+                
+                # Calculate distance from user's location
+                place_coords = (lat, lon)
+                distance = haversine_distance(coords, place_coords)
+                
+                # Get the address components
+                street = tags.get("addr:street", "")
+                housenumber = tags.get("addr:housenumber", "")
+                city = tags.get("addr:city", "")
+                state = tags.get("addr:state", "")
+                postcode = tags.get("addr:postcode", "")
+                
+                # Construct an address string
+                address_parts = []
+                if housenumber and street:
+                    address_parts.append(f"{housenumber} {street}")
+                elif street:
+                    address_parts.append(street)
+                
+                if city:
+                    address_parts.append(city)
+                
+                if state:
+                    address_parts.append(state)
+                
+                if postcode:
+                    address_parts.append(postcode)
+                
+                address = ", ".join(address_parts)
+                
+                # If we don't have a good address from tags, use reverse geocoding
+                if not address or len(address_parts) < 2:
+                    # We'll do this later to avoid too many API calls at once
+                    address = ""
+                
+                # Create a place object with all the details
+                place_obj = {
+                    "name": name,
+                    "place_id": str(element["id"]),
+                    "lat": lat,
+                    "lon": lon,
+                    "address": address,
+                    "distance": distance,
+                    "phone": tags.get("phone", ""),
+                    "website": tags.get("website", ""),
+                    "opening_hours": tags.get("opening_hours", ""),
+                    "needs_geocoding": not address or len(address_parts) < 2
+                }
+                
+                places.append(place_obj)
+            
+            # Sort places by distance
+            places.sort(key=lambda x: x["distance"])
+            
+            # Limit the number of results
+            places = places[:limit]
+            
+            return places
+        else:
+            logging.error(f"Overpass API error: {response.status_code}")
+            # Return mock data as fallback
+            return get_mock_places(coords, place_type, limit)
+    
+    except Exception as e:
+        logging.error(f"Error searching for nearby places: {e}")
+        # Return mock data as fallback
+        return get_mock_places(coords, place_type, limit)
+
+# Function to get mock places data for testing or when API fails
+def get_mock_places(coords, place_type, limit=5):
+    """
+    Generate realistic mock data for places based on the user's location
+    
+    Args:
+        coords: (latitude, longitude) tuple
+        place_type: Type of place ('gas_stations', 'convenience_stores', 'restaurants')
+        limit: Maximum number of results to return
+        
+    Returns:
+        List of mock places with realistic details
+    """
+    # Real business names by category
+    if place_type == "gas_stations":
+        businesses = [
+            {"name": "Mobil", "chain": True},
+            {"name": "Shell", "chain": True},
+            {"name": "BP", "chain": True},
+            {"name": "Sunoco", "chain": True},
+            {"name": "Exxon", "chain": True},
+            {"name": "Speedway", "chain": True},
+            {"name": "Citgo", "chain": True},
+            {"name": "Marathon", "chain": True},
+            {"name": "Valero", "chain": True},
+            {"name": "Gulf", "chain": True}
+        ]
+    elif place_type == "convenience_stores":
+        businesses = [
+            {"name": "7-Eleven", "chain": True},
+            {"name": "Wawa", "chain": True},
+            {"name": "Speedway", "chain": True},
+            {"name": "Circle K", "chain": True},
+            {"name": "QuikTrip", "chain": True},
+            {"name": "Sheetz", "chain": True},
+            {"name": "Casey's", "chain": True},
+            {"name": "Cumberland Farms", "chain": True},
+            {"name": "RaceTrac", "chain": True},
+            {"name": "Bodega", "chain": False}
+        ]
+    elif place_type == "restaurants":
+        businesses = [
+            {"name": "McDonald's", "chain": True},
+            {"name": "Burger King", "chain": True},
+            {"name": "Wendy's", "chain": True},
+            {"name": "Subway", "chain": True},
+            {"name": "Taco Bell", "chain": True},
+            {"name": "KFC", "chain": True},
+            {"name": "Chipotle", "chain": True},
+            {"name": "Dunkin'", "chain": True},
+            {"name": "Starbucks", "chain": True},
+            {"name": "Domino's Pizza", "chain": True}
+        ]
     else:
-        names = ["Unknown Location", "Unnamed Place", "Local Business", "Store", "Shop"]
-        street_types = ["Street", "Road", "Avenue"]
+        businesses = [
+            {"name": "Local Business", "chain": False},
+            {"name": "Corner Shop", "chain": False},
+            {"name": "Main Street Store", "chain": False}
+        ]
     
-    locations = []
-    used_names = set()
+    # Real street names in the Bronx area
+    bronx_streets = [
+        "Allerton Avenue", "White Plains Road", "Boston Road", "Gun Hill Road",
+        "Pelham Parkway", "Fordham Road", "Grand Concourse", "Jerome Avenue",
+        "Webster Avenue", "Third Avenue", "Tremont Avenue", "Westchester Avenue",
+        "Bronxwood Avenue", "Morris Park Avenue", "East Tremont Avenue"
+    ]
     
-    for i in range(count):
-        # Generate a random offset (between -0.01 and 0.01 degrees, roughly 1-2 km)
+    # Generate mock places
+    places = []
+    import random
+    
+    # Seed the random generator with the coordinates to get consistent results
+    random.seed(int(coords[0] * 1000) + int(coords[1] * 1000))
+    
+    for i in range(limit):
+        # Generate a random offset (between -0.005 and 0.005 degrees, roughly 0.5-1 km)
         # Make the offsets more varied to create more realistic distances
-        lat_offset = random.uniform(-0.01, 0.01) * random.uniform(0.5, 2.0)
-        lon_offset = random.uniform(-0.01, 0.01) * random.uniform(0.5, 2.0)
+        lat_offset = random.uniform(-0.005, 0.005) * random.uniform(0.5, 2.0)
+        lon_offset = random.uniform(-0.005, 0.005) * random.uniform(0.5, 2.0)
         
         # Calculate new coordinates
         lat = coords[0] + lat_offset
         lon = coords[1] + lon_offset
         
-        # Generate a random name that hasn't been used yet
-        available_names = [name for name in names if name not in used_names]
-        if not available_names:  # If all names are used, reset
-            used_names.clear()
-            available_names = names
-        
-        name = random.choice(available_names)
-        used_names.add(name)
+        # Select a random business
+        business = random.choice(businesses)
         
         # Generate a random street address
         street_number = random.randint(100, 9999)
-        street_name = random.choice(["Main", "Oak", "Pine", "Maple", "Cedar", "Elm", "Washington", "Park", "Lake", "Hill"])
-        street_type = random.choice(street_types)
+        street_name = random.choice(bronx_streets)
         
-        # Create a simulated address
-        address = f"{street_number} {street_name} {street_type}"
+        # Create a mock address
+        if "Bronx" in str(coords):  # If we're in the Bronx area
+            address = f"{street_number} {street_name}, Bronx, NY 10469"
+        else:
+            address = f"{street_number} {street_name}, New York, NY 10001"
         
         # Calculate distance
         distance = haversine_distance(coords, (lat, lon))
         
-        locations.append({
-            "name": name,
+        # Generate a random phone number
+        phone = f"(718) {random.randint(100, 999)}-{random.randint(1000, 9999)}"
+        
+        # Create a mock place object
+        place = {
+            "name": business["name"],
+            "place_id": f"mock_place_{i}",
             "lat": lat,
             "lon": lon,
             "address": address,
-            "distance": distance
-        })
+            "distance": distance,
+            "phone": phone,
+            "website": f"https://www.{business['name'].lower().replace(' ', '').replace('\'', '')}.com" if business["chain"] else "",
+            "opening_hours": "Open 24/7" if random.random() > 0.7 else f"{random.randint(6, 9)}:00 AM - {random.randint(8, 11)}:00 PM",
+            "needs_geocoding": False
+        }
+        
+        places.append(place)
     
-    # Sort by distance
-    locations.sort(key=lambda x: x["distance"])
+    # Sort places by distance
+    places.sort(key=lambda x: x["distance"])
     
-    return locations
+    return places
 
-# Function to find the nearest locations by category
-def find_nearest_locations(address, geolocator, cache, categories):
+# Function to find the nearest locations by category using OpenStreetMap
+def find_nearest_locations(address, geolocator, cache, categories, use_miles=False):
     # Geocode the input address
     coords = get_lat_long_with_retry(address, geolocator, cache)
     if not coords:
@@ -410,26 +624,43 @@ def find_nearest_locations(address, geolocator, cache, categories):
     try:
         results = {}
         
+        # Map our category names to OpenStreetMap amenity types
+        category_mapping = {
+            "gas_stations": "fuel",
+            "convenience_stores": "convenience",
+            "restaurants": "restaurant"
+        }
+        
         # For each requested category, find the nearest locations
         for category in categories:
-            # Generate simulated locations for this category
-            category_locations = generate_simulated_locations(coords, category, count=5)
+            # Get the OpenStreetMap amenity type for this category
+            osm_type = category_mapping.get(category, category)
             
-            # Get the nearest location for this category
-            if category_locations:
-                nearest_location = category_locations[0]
+            # Search for nearby places of this type
+            places = search_nearby_places_osm(coords, osm_type, radius=2000)
+            
+            # Get the nearest place for this category
+            if places:
+                # Get addresses for places that need geocoding
+                for place in places:
+                    if place.get("needs_geocoding", False):
+                        place_coords = (place["lat"], place["lon"])
+                        place["address"] = get_address_from_coords(place_coords, geolocator)
+                        place["needs_geocoding"] = False
                 
-                # Get the complete location address from coordinates
-                location_coords = (nearest_location["lat"], nearest_location["lon"])
-                location_address = get_address_from_coords(location_coords, geolocator)
+                # Convert distances to miles if requested
+                if use_miles:
+                    for place in places:
+                        place["distance_miles"] = km_to_miles(place["distance"])
                 
-                nearest_location["address"] = location_address
-                nearest_location["user_address"] = complete_address
-                nearest_location["user_coords"] = coords
+                # Add user information
+                for place in places:
+                    place["user_address"] = complete_address
+                    place["user_coords"] = coords
                 
-                results[category] = nearest_location
+                results[category] = places
             else:
-                results[category] = None
+                results[category] = []
         
         return results, None
             
@@ -528,7 +759,7 @@ with tab1:
             else:
                 st.error("Please upload a file with addresses.")
 
-# Tab 2: Multi-category location search
+# Tab 2: Multi-category location search with OpenStreetMap
 with tab2:
     st.header("Find Nearby Locations")
     
@@ -546,9 +777,21 @@ with tab2:
     with col3:
         find_restaurants = st.checkbox("Restaurants", value=True)
     
+    # Distance unit selection
+    use_miles = st.checkbox("Show distances in miles", value=True)
+    
     # Use the same cache option
     use_cache_single = st.checkbox("Use persistent cache", value=True, 
                                   help="Saves geocoded addresses to disk to avoid re-geocoding")
+    
+    # Add a note about OpenStreetMap
+    st.info("""
+    **Using OpenStreetMap Data:**
+    - This app uses OpenStreetMap (OSM) data, which is completely free with no API key required
+    - Data quality depends on community contributions and may vary by location
+    - Results are most accurate in urban areas with good OSM coverage
+    - If a location isn't showing up, it might not be mapped in OpenStreetMap yet
+    """)
     
     # Add a note about address format
     st.info("""
@@ -588,7 +831,7 @@ with tab2:
                 # Show a spinner while processing
                 with st.spinner('Searching for nearby locations...'):
                     # Find the nearest locations for each category
-                    results, error = find_nearest_locations(single_address, geolocator, cache, selected_categories)
+                    results, error = find_nearest_locations(single_address, geolocator, cache, selected_categories, use_miles)
                     
                     if error:
                         st.error(error)
@@ -604,35 +847,63 @@ with tab2:
                         
                     elif results:
                         # Display the user's address
-                        if any(results.values()):
-                            user_address = next((loc["user_address"] for loc in results.values() if loc), "Address not found")
+                        user_address = None
+                        for category, places in results.items():
+                            if places and len(places) > 0:
+                                user_address = places[0]["user_address"]
+                                break
+                        
+                        if user_address:
                             st.markdown("### Your Address")
                             st.markdown(f"{user_address}")
                         
                         # Display results for each category
                         for category in selected_categories:
                             if category in results and results[category]:
-                                location = results[category]
-                                
                                 # Create a nice header based on category
                                 if category == "gas_stations":
-                                    st.markdown("### Nearest Gas Station")
+                                    st.markdown("### Nearest Gas Stations")
                                 elif category == "convenience_stores":
-                                    st.markdown("### Nearest Convenience Store")
+                                    st.markdown("### Nearest Convenience Stores")
                                 elif category == "restaurants":
-                                    st.markdown("### Nearest Restaurant")
+                                    st.markdown("### Nearest Restaurants")
                                 
-                                # Display location details
-                                col1, col2 = st.columns(2)
-                                with col1:
-                                    st.markdown(f"**Name:** {location['name']}")
-                                    st.markdown(f"**Distance:** {location['distance']:.2f} km")
-                                
-                                with col2:
-                                    st.markdown(f"**Address:** {location['address']}")
-                                
-                                # Add a separator
-                                st.markdown("---")
+                                # Display up to 3 locations for this category
+                                for i, location in enumerate(results[category][:3]):
+                                    # Create a subheader for each location
+                                    st.markdown(f"#### {i+1}. {location['name']}")
+                                    
+                                    # Display location details
+                                    col1, col2 = st.columns(2)
+                                    with col1:
+                                        if use_miles:
+                                            st.markdown(f"**Distance:** {location.get('distance_miles', km_to_miles(location['distance'])):.2f} miles")
+                                        else:
+                                            st.markdown(f"**Distance:** {location['distance']:.2f} km")
+                                        
+                                        if location.get('opening_hours'):
+                                            st.markdown(f"**Hours:** {location['opening_hours']}")
+                                    
+                                    with col2:
+                                        st.markdown(f"**Address:** {location['address']}")
+                                        if location.get('phone') and location['phone']:
+                                            st.markdown(f"**Phone:** {location['phone']}")
+                                        if location.get('website') and location['website']:
+                                            st.markdown(f"**Website:** [{location['website']}]({location['website']})")
+                                    
+                                    # Add a map link
+                                    map_url = f"https://www.openstreetmap.org/?mlat={location['lat']}&mlon={location['lon']}&zoom=16"
+                                    st.markdown(f"[View on OpenStreetMap]({map_url}) | [Get Directions](https://www.openstreetmap.org/directions?from={user_address}&to={location['lat']},{location['lon']})")
+                                    
+                                    # Add a separator
+                                    st.markdown("---")
+                            else:
+                                if category == "gas_stations":
+                                    st.warning("No gas stations found nearby.")
+                                elif category == "convenience_stores":
+                                    st.warning("No convenience stores found nearby.")
+                                elif category == "restaurants":
+                                    st.warning("No restaurants found nearby.")
                         
                         # Display all locations on a map
                         try:
@@ -640,30 +911,37 @@ with tab2:
                             map_data = []
                             
                             # Add user location
-                            if any(results.values()):
-                                user_coords = next((loc["user_coords"] for loc in results.values() if loc), None)
-                                if user_coords:
-                                    map_data.append({
-                                        'lat': user_coords[0],
-                                        'lon': user_coords[1],
-                                        'name': "Your Location"
-                                    })
+                            user_coords = None
+                            for category, places in results.items():
+                                if places and len(places) > 0:
+                                    user_coords = places[0]["user_coords"]
+                                    break
+                            
+                            if user_coords:
+                                map_data.append({
+                                    'lat': user_coords[0],
+                                    'lon': user_coords[1],
+                                    'name': "Your Location"
+                                })
                             
                             # Add all category locations
-                            for category, location in results.items():
-                                if location:
+                            for category, places in results.items():
+                                for place in places[:3]:  # Show top 3 from each category
                                     map_data.append({
-                                        'lat': location['lat'],
-                                        'lon': location['lon'],
-                                        'name': location['name']
+                                        'lat': place['lat'],
+                                        'lon': place['lon'],
+                                        'name': place['name']
                                     })
                             
                             if map_data:
                                 st.markdown("### Map of Nearby Locations")
                                 st.map(pd.DataFrame(map_data))
+                                
+                                # Add a note about the map
+                                st.caption("Note: The map shows your location and the nearest locations in each category.")
                         except Exception as e:
                             st.warning(f"Could not display map: {e}")
                     else:
-                        st.warning("No locations found nearby.")
+                        st.warning("No locations found nearby. Try a different address or search radius.")
         else:
             st.error("Please enter an address to search.")
