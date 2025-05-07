@@ -6,6 +6,7 @@ import logging
 import json
 import os
 import random
+import re
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from functools import partial
@@ -24,6 +25,137 @@ def haversine_distance(coords1, coords2):
     a = math.sin(delta_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(delta_lng / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c  # Distance in km
+
+# Function to simplify address format
+def simplify_address(address):
+    if not address or "Could not determine" in address:
+        return address
+    
+    try:
+        # Split the address into components
+        parts = [part.strip() for part in address.split(',')]
+        
+        # Extract the street number and name (usually the first component)
+        street = parts[0] if parts else ""
+        
+        # Look for city, state, and zip
+        city = ""
+        state = ""
+        zipcode = ""
+        
+        # Try to find the zip code (5-digit number)
+        zip_pattern = re.compile(r'\b\d{5}\b')
+        for part in parts:
+            zip_match = zip_pattern.search(part)
+            if zip_match:
+                zipcode = zip_match.group(0)
+                break
+        
+        # Look for state abbreviation (2 uppercase letters)
+        state_pattern = re.compile(r'\b[A-Z]{2}\b')
+        for part in parts:
+            state_match = state_pattern.search(part)
+            if state_match:
+                state = state_match.group(0)
+                break
+        
+        # If we didn't find a 2-letter state code, look for full state names
+        if not state:
+            state_names = {
+                "Alabama": "AL", "Alaska": "AK", "Arizona": "AZ", "Arkansas": "AR", "California": "CA",
+                "Colorado": "CO", "Connecticut": "CT", "Delaware": "DE", "Florida": "FL", "Georgia": "GA",
+                "Hawaii": "HI", "Idaho": "ID", "Illinois": "IL", "Indiana": "IN", "Iowa": "IA",
+                "Kansas": "KS", "Kentucky": "KY", "Louisiana": "LA", "Maine": "ME", "Maryland": "MD",
+                "Massachusetts": "MA", "Michigan": "MI", "Minnesota": "MN", "Mississippi": "MS", "Missouri": "MO",
+                "Montana": "MT", "Nebraska": "NE", "Nevada": "NV", "New Hampshire": "NH", "New Jersey": "NJ",
+                "New Mexico": "NM", "New York": "NY", "North Carolina": "NC", "North Dakota": "ND", "Ohio": "OH",
+                "Oklahoma": "OK", "Oregon": "OR", "Pennsylvania": "PA", "Rhode Island": "RI", "South Carolina": "SC",
+                "South Dakota": "SD", "Tennessee": "TN", "Texas": "TX", "Utah": "UT", "Vermont": "VT",
+                "Virginia": "VA", "Washington": "WA", "West Virginia": "WV", "Wisconsin": "WI", "Wyoming": "WY",
+                "District of Columbia": "DC"
+            }
+            for part in parts:
+                part = part.strip()
+                if part in state_names:
+                    state = state_names[part]
+                    break
+        
+        # Try to identify the city
+        # Common city indicators in address
+        city_indicators = ["City of", "Town of", "Village of"]
+        
+        # First, look for parts that might contain the city
+        for i, part in enumerate(parts):
+            part = part.strip()
+            # Skip the street part and the last few parts (likely state, zip, country)
+            if i == 0 or i > len(parts) - 4:
+                continue
+                
+            # Check if this part might be a city
+            for indicator in city_indicators:
+                if indicator in part:
+                    city = part.replace(indicator, "").strip()
+                    break
+            
+            # Common city names that might be in the address
+            if part in ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia",
+                       "San Antonio", "San Diego", "Dallas", "San Jose"] or \
+               part in ["The Bronx", "Brooklyn", "Manhattan", "Queens", "Staten Island"]:
+                city = part
+                break
+                
+            # If we haven't found a city yet, and this part is not too long,
+            # and doesn't contain numbers, it might be the city
+            if not city and len(part) < 20 and not any(c.isdigit() for c in part):
+                city = part
+                break
+        
+        # If we still don't have a city, try to extract it from specific patterns
+        if not city:
+            # For addresses like "The Bronx, Bronx County, City of New York"
+            for part in parts:
+                if "Bronx" in part:
+                    city = "Bronx"
+                    break
+                elif "Brooklyn" in part:
+                    city = "Brooklyn"
+                    break
+                elif "Manhattan" in part:
+                    city = "Manhattan"
+                    break
+                elif "Queens" in part:
+                    city = "Queens"
+                    break
+                elif "Staten Island" in part:
+                    city = "Staten Island"
+                    break
+        
+        # If we still don't have a city, use a default approach
+        if not city and len(parts) > 2:
+            # Try the second or third part as the city
+            city_candidates = [parts[1], parts[2] if len(parts) > 2 else ""]
+            for candidate in city_candidates:
+                if candidate and not any(c.isdigit() for c in candidate) and len(candidate) < 20:
+                    city = candidate
+                    break
+        
+        # Construct the simplified address
+        simplified = street
+        
+        if city:
+            simplified += f", {city}"
+        
+        if state:
+            simplified += f", {state}"
+        
+        if zipcode:
+            simplified += f" {zipcode}"
+        
+        return simplified
+    
+    except Exception as e:
+        logging.error(f"Error simplifying address: {e}")
+        return address  # Return the original address if there's an error
 
 # Persistent cache for geocoded addresses
 class GeocodingCache:
@@ -111,6 +243,10 @@ def get_lat_long_with_retry(address, geolocator, cache, retries=5, delay=2):
         logging.info(f"Using fallback coordinates for Southborough address")
         return (42.2945, -71.5311)  # Approximate coordinates for Southborough, MA
     
+    if "Allerton" in address and "Bronx" in address:
+        logging.info(f"Using fallback coordinates for Bronx address")
+        return (40.8654, -73.8592)  # Approximate coordinates for Allerton Ave, Bronx
+    
     return None
 
 # Function to get address from coordinates (reverse geocoding)
@@ -123,7 +259,8 @@ def get_address_from_coords(coords, geolocator, retries=3, delay=2):
             # Reverse geocoding request using Nominatim
             location = geolocator.reverse(coords, exactly_one=True, timeout=10)
             if location:
-                return location.address
+                # Simplify the address format
+                return simplify_address(location.address)
             else:
                 logging.warning(f"Reverse geocoding failed for coordinates: {coords}")
                 time.sleep(delay * (attempt + 1))
