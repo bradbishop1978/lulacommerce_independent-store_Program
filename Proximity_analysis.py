@@ -339,8 +339,42 @@ def find_closest_addresses(addresses, geolocator, cache, progress_bar, progress_
     
     return formatted_results
 
-# Function to search for nearby places using OpenStreetMap Overpass API
-def search_nearby_places_osm(coords, place_type, radius=1500, limit=5):
+# Add a new function to identify likely delivery service partners
+def is_delivery_partner(place):
+    """
+    Check if a place is likely to be a delivery service partner
+    based on its name, type, and other attributes.
+    """
+    # Common store chains that partner with delivery services
+    delivery_partners = [
+        "7-Eleven", "Walgreens", "CVS", "Rite Aid", "Duane Reade", 
+        "Circle K", "Wawa", "Sheetz", "QuikTrip", "Casey's",
+        "Speedway", "RaceTrac", "Cumberland Farms", "Kroger", "Albertsons",
+        "Safeway", "Publix", "Whole Foods", "Target", "Walmart",
+        "Family Dollar", "Dollar General", "Aldi", "Trader Joe's",
+        "GoPuff", "goPuff", "Gopuff", "DashMart"
+    ]
+    
+    # Check if the place name matches any known delivery partners
+    if place.get("name") in delivery_partners:
+        return True
+    
+    # Check for tags that might indicate a delivery partner
+    tags = place.get("tags", {})
+    if tags.get("shop") in ["convenience", "supermarket", "grocery"]:
+        return True
+    
+    # Check for specific delivery service tags (these are rare but might exist)
+    for tag, value in tags.items():
+        if "delivery" in tag.lower() and value.lower() in ["yes", "true"]:
+            return True
+        if "takeaway" in tag.lower() and value.lower() in ["yes", "true"]:
+            return True
+    
+    return False
+
+# Modify the search_nearby_places_osm function to include a delivery_partners parameter
+def search_nearby_places_osm(coords, place_type, radius=1500, limit=5, delivery_partners=False):
     """
     Search for nearby places using OpenStreetMap Overpass API
     
@@ -349,6 +383,7 @@ def search_nearby_places_osm(coords, place_type, radius=1500, limit=5):
         place_type: Type of place to search for (e.g., 'fuel', 'convenience', 'restaurant')
         radius: Search radius in meters
         limit: Maximum number of results to return
+        delivery_partners: If True, filter for likely delivery service partners
         
     Returns:
         List of places with details
@@ -370,20 +405,41 @@ def search_nearby_places_osm(coords, place_type, radius=1500, limit=5):
         # Get the OSM amenity type
         amenity = osm_amenity_mapping.get(place_type, place_type)
         
-        # Overpass API endpoint
-        overpass_url = "https://overpass-api.de/api/interpreter"
-        
-        # Build the Overpass QL query
-        # This searches for nodes and ways with the specified amenity within the radius
-        overpass_query = f"""
-        [out:json];
-        (
-          node["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
-          way["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
-          relation["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
-        );
-        out center;
-        """
+        # If looking for delivery partners, expand the search to include shops
+        if delivery_partners:
+            # Overpass API endpoint
+            overpass_url = "https://overpass-api.de/api/interpreter"
+            
+            # Build the Overpass QL query to include both amenities and shops
+            overpass_query = f"""
+            [out:json];
+            (
+              node["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
+              way["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
+              relation["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
+              node["shop"="convenience"](around:{radius},{coords[0]},{coords[1]});
+              way["shop"="convenience"](around:{radius},{coords[0]},{coords[1]});
+              node["shop"="supermarket"](around:{radius},{coords[0]},{coords[1]});
+              way["shop"="supermarket"](around:{radius},{coords[0]},{coords[1]});
+              node["shop"="grocery"](around:{radius},{coords[0]},{coords[1]});
+              way["shop"="grocery"](around:{radius},{coords[0]},{coords[1]});
+            );
+            out center;
+            """
+        else:
+            # Overpass API endpoint
+            overpass_url = "https://overpass-api.de/api/interpreter"
+            
+            # Build the standard Overpass QL query
+            overpass_query = f"""
+            [out:json];
+            (
+              node["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
+              way["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
+              relation["amenity"="{amenity}"](around:{radius},{coords[0]},{coords[1]});
+            );
+            out center;
+            """
         
         # Make the API request
         response = requests.post(overpass_url, data={"data": overpass_query})
@@ -463,10 +519,19 @@ def search_nearby_places_osm(coords, place_type, radius=1500, limit=5):
                     "phone": tags.get("phone", ""),
                     "website": tags.get("website", ""),
                     "opening_hours": tags.get("opening_hours", ""),
-                    "needs_geocoding": not address or len(address_parts) < 2
+                    "needs_geocoding": not address or len(address_parts) < 2,
+                    "tags": tags  # Include all tags for filtering
                 }
                 
                 places.append(place_obj)
+            
+            # If looking for delivery partners, filter the results
+            if delivery_partners:
+                delivery_places = [place for place in places if is_delivery_partner(place)]
+                # If we found delivery partners, use those
+                if delivery_places:
+                    places = delivery_places
+                # Otherwise, fall back to all places (to avoid empty results)
             
             # Sort places by distance
             places.sort(key=lambda x: x["distance"])
@@ -478,15 +543,15 @@ def search_nearby_places_osm(coords, place_type, radius=1500, limit=5):
         else:
             logging.error(f"Overpass API error: {response.status_code}")
             # Return mock data as fallback
-            return get_mock_places(coords, place_type, limit)
+            return get_mock_places(coords, place_type, limit, delivery_partners)
     
     except Exception as e:
         logging.error(f"Error searching for nearby places: {e}")
         # Return mock data as fallback
-        return get_mock_places(coords, place_type, limit)
+        return get_mock_places(coords, place_type, limit, delivery_partners)
 
-# Function to get mock places data for testing or when API fails
-def get_mock_places(coords, place_type, limit=5):
+# Modify the get_mock_places function to include delivery partners
+def get_mock_places(coords, place_type, limit=5, delivery_partners=False):
     """
     Generate realistic mock data for places based on the user's location
     
@@ -494,6 +559,7 @@ def get_mock_places(coords, place_type, limit=5):
         coords: (latitude, longitude) tuple
         place_type: Type of place ('gas_stations', 'convenience_stores', 'restaurants')
         limit: Maximum number of results to return
+        delivery_partners: If True, generate mock data for delivery service partners
         
     Returns:
         List of mock places with realistic details
@@ -513,18 +579,33 @@ def get_mock_places(coords, place_type, limit=5):
             {"name": "Gulf", "chain": True}
         ]
     elif place_type == "convenience_stores":
-        businesses = [
-            {"name": "7-Eleven", "chain": True},
-            {"name": "Wawa", "chain": True},
-            {"name": "Speedway", "chain": True},
-            {"name": "Circle K", "chain": True},
-            {"name": "QuikTrip", "chain": True},
-            {"name": "Sheetz", "chain": True},
-            {"name": "Casey's", "chain": True},
-            {"name": "Cumberland Farms", "chain": True},
-            {"name": "RaceTrac", "chain": True},
-            {"name": "Bodega", "chain": False}
-        ]
+        if delivery_partners:
+            # Stores that commonly partner with delivery services
+            businesses = [
+                {"name": "7-Eleven", "chain": True, "delivery": True},
+                {"name": "Walgreens", "chain": True, "delivery": True},
+                {"name": "CVS", "chain": True, "delivery": True},
+                {"name": "Rite Aid", "chain": True, "delivery": True},
+                {"name": "Circle K", "chain": True, "delivery": True},
+                {"name": "Wawa", "chain": True, "delivery": True},
+                {"name": "Sheetz", "chain": True, "delivery": True},
+                {"name": "QuikTrip", "chain": True, "delivery": True},
+                {"name": "DashMart", "chain": True, "delivery": True},
+                {"name": "GoPuff", "chain": True, "delivery": True}
+            ]
+        else:
+            businesses = [
+                {"name": "7-Eleven", "chain": True},
+                {"name": "Wawa", "chain": True},
+                {"name": "Speedway", "chain": True},
+                {"name": "Circle K", "chain": True},
+                {"name": "QuikTrip", "chain": True},
+                {"name": "Sheetz", "chain": True},
+                {"name": "Casey's", "chain": True},
+                {"name": "Cumberland Farms", "chain": True},
+                {"name": "RaceTrac", "chain": True},
+                {"name": "Bodega", "chain": False}
+            ]
     elif place_type == "restaurants":
         businesses = [
             {"name": "McDonald's", "chain": True},
@@ -589,6 +670,15 @@ def get_mock_places(coords, place_type, limit=5):
         # Generate a random phone number
         phone = f"(718) {random.randint(100, 999)}-{random.randint(1000, 9999)}"
         
+        # Add delivery service information for delivery partners
+        delivery_info = ""
+        if delivery_partners and business.get("delivery", False):
+            delivery_services = ["UberEats", "DoorDash", "GrubHub", "Gopuff", "Instacart"]
+            # Randomly select 1-3 delivery services
+            num_services = random.randint(1, 3)
+            selected_services = random.sample(delivery_services, num_services)
+            delivery_info = f"Available on: {', '.join(selected_services)}"
+        
         # Create a mock place object
         place = {
             "name": business["name"],
@@ -600,7 +690,8 @@ def get_mock_places(coords, place_type, limit=5):
             "phone": phone,
             "website": f"https://www.{business['name'].lower().replace(' ', '').replace('\'', '')}.com" if business["chain"] else "",
             "opening_hours": "Open 24/7" if random.random() > 0.7 else f"{random.randint(6, 9)}:00 AM - {random.randint(8, 11)}:00 PM",
-            "needs_geocoding": False
+            "needs_geocoding": False,
+            "delivery_info": delivery_info
         }
         
         places.append(place)
@@ -610,7 +701,7 @@ def get_mock_places(coords, place_type, limit=5):
     
     return places
 
-# Function to find the nearest locations by category using OpenStreetMap
+# Modify the find_nearest_locations function to include delivery partners
 def find_nearest_locations(address, geolocator, cache, categories, use_miles=False):
     # Geocode the input address
     coords = get_lat_long_with_retry(address, geolocator, cache)
@@ -636,8 +727,11 @@ def find_nearest_locations(address, geolocator, cache, categories, use_miles=Fal
             # Get the OpenStreetMap amenity type for this category
             osm_type = category_mapping.get(category, category)
             
+            # For convenience stores, always include delivery partner info
+            is_delivery = (category == "convenience_stores")
+            
             # Search for nearby places of this type
-            places = search_nearby_places_osm(coords, osm_type, radius=2000)
+            places = search_nearby_places_osm(coords, osm_type, radius=2000, delivery_partners=is_delivery)
             
             # Get the nearest place for this category
             if places and len(places) > 0:
@@ -667,97 +761,7 @@ def find_nearest_locations(address, geolocator, cache, categories, use_miles=Fal
         logging.error(f"Error finding nearby locations: {e}")
         return None, f"Error finding nearby locations: {str(e)}"
 
-# Streamlit interface
-st.title("Address Processor")
-
-# Create tabs for different functionalities
-tab1, tab2 = st.tabs(["Batch Processing", "Location Search"])
-
-# Tab 1: Original batch processing functionality
-with tab1:
-    st.header("Large Address Dataset Processor")
-    
-    # Upload file (CSV format)
-    uploaded_file = st.file_uploader("Upload your CSV file with addresses", type=["csv"])
-
-    if uploaded_file is not None:
-        # Read the CSV
-        df = pd.read_csv(uploaded_file)
-        
-        # Display sample of data
-        st.write("Preview of your data (first 5 rows):", df.head())
-        
-        # Get the list of addresses (assuming addresses are in the first column)
-        addresses = df.iloc[:, 0].dropna().tolist()
-        
-        st.write(f"Total addresses detected: {len(addresses)}")
-        
-        # Warning for large datasets
-        if len(addresses) > 100:
-            st.warning(f"""
-            ⚠️ You have {len(addresses)} addresses. Processing may take a long time due to rate limits.
-            
-            Estimated processing time: {len(addresses) * 2} minutes or more.
-            
-            Consider using a smaller dataset for testing or running this process in the background.
-            """)
-        
-        # Options for processing
-        st.subheader("Processing Options")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            use_cache = st.checkbox("Use persistent cache (recommended)", value=True, 
-                                   help="Saves geocoded addresses to disk to avoid re-geocoding if process is interrupted")
-        
-        with col2:
-            batch_size = st.slider("Batch size", min_value=10, max_value=100, value=50, 
-                                  help="Number of addresses to process in each batch")
-        
-        # Show the progress text and bar
-        progress_text = st.empty()
-        progress_bar = st.progress(0)
-        
-        # Button to run the calculation
-        if st.button('Find Closest Addresses'):
-            if len(addresses) > 0:
-                start_time = time.time()
-                
-                # Initialize cache
-                cache = GeocodingCache() if use_cache else GeocodingCache("temp_cache.json")
-                
-                # Initialize Nominatim geolocator
-                try:
-                    geolocator = Nominatim(user_agent="large_address_processor")
-                    logging.info("Nominatim geolocator initialized successfully.")
-                except Exception as e:
-                    st.error(f"Error initializing geolocator: {e}")
-                    logging.error(f"Error initializing geolocator: {e}")
-                    st.stop()
-                
-                # Find the closest addresses with improved batching
-                results = find_closest_addresses(addresses, geolocator, cache, progress_bar, progress_text)
-                
-                # Add results to the dataframe
-                df['Closest Address'] = [result.split(' (')[0] if '(' in result else result for result in results]
-                df['Distance (km)'] = [result.split('(')[-1].replace(')', '').strip() if '(' in result else 'N/A' for result in results]
-                
-                # Display results
-                st.subheader("Results")
-                st.dataframe(df)
-                
-                # Download button for the results
-                csv = df.to_csv(index=False)
-                st.download_button("Download results as CSV", csv, "results.csv", "text/csv")
-                
-                # Display processing time
-                end_time = time.time()
-                processing_time = end_time - start_time
-                st.success(f"Processing completed in {processing_time:.2f} seconds ({processing_time/60:.2f} minutes)")
-                
-            else:
-                st.error("Please upload a file with addresses.")
-
+# Update the Streamlit interface to remove the delivery partners checkbox
 # Tab 2: Multi-category location search with OpenStreetMap
 with tab2:
     st.header("Find Nearby Locations")
@@ -791,6 +795,15 @@ with tab2:
     - Results are most accurate in urban areas with good OSM coverage
     - If a location isn't showing up, it might not be mapped in OpenStreetMap yet
     """)
+    
+    # Add a note about convenience stores and delivery
+    if find_convenience:
+        st.info("""
+        **About Convenience Stores:**
+        - Results include stores that partner with delivery services like UberEats, DoorDash, GrubHub, Gopuff, etc.
+        - Delivery service availability is shown when available
+        - Actual delivery availability may vary and should be confirmed with the specific service
+        """)
     
     # Add a note about address format
     st.info("""
@@ -877,6 +890,10 @@ with tab2:
                                         st.markdown(f"**Distance:** {location.get('distance_miles', km_to_miles(location['distance'])):.2f} miles")
                                     else:
                                         st.markdown(f"**Distance:** {location['distance']:.2f} km")
+                                    
+                                    # Show delivery info if available and this is a convenience store
+                                    if category == "convenience_stores" and location.get('delivery_info'):
+                                        st.markdown(f"**Delivery:** {location['delivery_info']}")
                                 
                                 with col2:
                                     st.markdown(f"**Address:** {location['address']}")
