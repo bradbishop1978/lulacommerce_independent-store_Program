@@ -84,6 +84,32 @@ def get_lat_long_with_retry(address, geolocator, cache, retries=3, delay=2):
             time.sleep(delay * (attempt + 1))
     return None
 
+# Function to get address from coordinates (reverse geocoding)
+def get_address_from_coords(coords, geolocator, retries=3, delay=2):
+    if not coords:
+        return "Could not determine address (no coordinates)"
+    
+    for attempt in range(retries):
+        try:
+            # Reverse geocoding request using Nominatim
+            location = geolocator.reverse(coords, exactly_one=True)
+            if location:
+                return location.address
+            else:
+                logging.warning(f"Reverse geocoding failed for coordinates: {coords}")
+                return "Could not determine complete address"
+        except GeocoderTimedOut:
+            logging.warning(f"Reverse geocoding timed out for coordinates: {coords}")
+            time.sleep(delay * (attempt + 1))
+        except GeocoderServiceError:
+            logging.warning(f"Reverse geocoding service error for coordinates: {coords}")
+            time.sleep(delay * (attempt + 1))
+        except Exception as e:
+            logging.error(f"Error reverse geocoding coordinates: {coords} - {e}")
+            time.sleep(delay * (attempt + 1))
+    
+    return "Could not determine complete address"
+
 # Batch processing function
 def process_address_batch(addresses, batch_size=50):
     """Split addresses into manageable batches"""
@@ -149,26 +175,21 @@ def find_nearest_convenience_store(address, geolocator, cache):
     if not coords:
         return None, "Could not geocode the provided address"
     
-    # Get the complete address from coordinates (reverse geocoding)
-    try:
-        location = geolocator.reverse(coords, exactly_one=True)
-        complete_address = location.address if location else "Unknown address"
-    except Exception as e:
-        logging.error(f"Error reverse geocoding: {e}")
-        complete_address = "Could not determine complete address"
+    # Get the complete address from coordinates
+    complete_address = get_address_from_coords(coords, geolocator)
     
     # Search for convenience stores nearby
     try:
         # In a real implementation, you would use Overpass API or Google Places API
         # For demonstration, we'll create some sample stores around the given coordinates
         
-        # Sample stores with more realistic names (simulated)
+        # Sample convenience stores with real-world names (simulated)
         sample_stores = [
-            {"name": "7-Eleven", "lat": coords[0] + 0.01, "lon": coords[1] + 0.005, "identified": True},
-            {"name": "Walgreens", "lat": coords[0] - 0.008, "lon": coords[1] + 0.002, "identified": True},
-            {"name": "CVS Pharmacy", "lat": coords[0] + 0.003, "lon": coords[1] - 0.007, "identified": True},
-            {"name": "Unidentified Store", "lat": coords[0] - 0.005, "lon": coords[1] - 0.003, "identified": False},
-            {"name": "Target Express", "lat": coords[0] + 0.007, "lon": coords[1] - 0.001, "identified": True},
+            {"name": "7-Eleven", "lat": coords[0] + 0.01, "lon": coords[1] + 0.005},
+            {"name": "Circle K", "lat": coords[0] - 0.008, "lon": coords[1] + 0.002},
+            {"name": "Walgreens", "lat": coords[0] + 0.003, "lon": coords[1] - 0.007},
+            {"name": "CVS Pharmacy", "lat": coords[0] - 0.005, "lon": coords[1] - 0.003},
+            {"name": "Family Mart", "lat": coords[0] + 0.007, "lon": coords[1] - 0.001},
         ]
         
         # Calculate distances to each store
@@ -178,37 +199,28 @@ def find_nearest_convenience_store(address, geolocator, cache):
         for store in sample_stores:
             store_coords = (store["lat"], store["lon"])
             distance = haversine_distance(coords, store_coords)
-            store["distance"] = distance
             
-            # Get the complete address for this store (reverse geocoding)
-            try:
-                store_location = geolocator.reverse(store_coords, exactly_one=True)
-                store["address"] = store_location.address if store_location else "Unknown address"
-            except Exception as e:
-                logging.error(f"Error reverse geocoding store: {e}")
-                store["address"] = "Could not determine store address"
+            # Get the complete store address from coordinates
+            store_address = get_address_from_coords(store_coords, geolocator)
+            
+            store["distance"] = distance
+            store["address"] = store_address
             
             if distance < min_distance:
                 min_distance = distance
                 nearest_store = store
         
         if nearest_store:
-            # If the store is not identified, change the display name
-            if not nearest_store.get("identified", True):
-                nearest_store["display_name"] = "Nearest Store (Unidentified)"
-            else:
-                nearest_store["display_name"] = nearest_store["name"]
-                
             # Add the user's complete address to the result
             nearest_store["user_address"] = complete_address
-            
+            nearest_store["user_coords"] = coords
             return nearest_store, None
         else:
-            return None, "No stores found nearby"
+            return None, "No convenience stores found nearby"
             
     except Exception as e:
-        logging.error(f"Error finding stores: {e}")
-        return None, f"Error finding stores: {str(e)}"
+        logging.error(f"Error finding convenience stores: {e}")
+        return None, f"Error finding convenience stores: {str(e)}"
 
 # Streamlit interface
 st.title("Address Processor")
@@ -322,7 +334,6 @@ with tab2:
             # Initialize Nominatim geolocator
             try:
                 geolocator = Nominatim(user_agent="single_address_processor")
-                geocode = partial(geolocator.geocode, timeout=10)
                 logging.info("Nominatim geolocator initialized successfully for single address search.")
             except Exception as e:
                 st.error(f"Error initializing geolocator: {e}")
@@ -332,35 +343,36 @@ with tab2:
             # Show a spinner while processing
             with st.spinner('Searching for the nearest convenience store...'):
                 # Find the nearest convenience store
-                nearest_store, error = find_nearest_convenience_store(single_address, geocode, cache)
+                nearest_store, error = find_nearest_convenience_store(single_address, geolocator, cache)
                 
                 if error:
                     st.error(error)
                 elif nearest_store:
                     # Display the result in a nice format
-                    st.success(f"Found the nearest convenience store!")
+                    st.success(f"Found the nearest store!")
                     
                     # Create a card-like display for the result
-                    st.markdown("### Nearest Convenience Store")
+                    st.markdown("### Your Address")
+                    st.markdown(f"{nearest_store['user_address']}")
+                    
+                    st.markdown("### Nearest Store")
                     
                     col1, col2 = st.columns(2)
                     with col1:
                         st.markdown(f"**Store Name:** {nearest_store['name']}")
                         st.markdown(f"**Distance:** {nearest_store['distance']:.2f} km")
-                        st.markdown(f"**User Address:** {nearest_store['user_address']}")
-                        st.markdown(f"**Store Address:** {nearest_store['address']}")
                     
                     with col2:
-                        st.markdown(f"**Latitude:** {nearest_store['lat']}")
-                        st.markdown(f"**Longitude:** {nearest_store['lon']}")
+                        st.markdown(f"**Store Address:** {nearest_store['address']}")
+                        st.markdown(f"**Coordinates:** {nearest_store['lat']:.6f}, {nearest_store['lon']:.6f}")
                     
                     # Display on a map if possible
                     try:
-                        # Create a DataFrame for the map
+                        # Create a DataFrame for the map with both points
                         map_data = pd.DataFrame({
-                            'lat': [nearest_store['lat']],
-                            'lon': [nearest_store['lon']],
-                            'name': [nearest_store['name']]
+                            'lat': [nearest_store['lat'], nearest_store['user_coords'][0]],
+                            'lon': [nearest_store['lon'], nearest_store['user_coords'][1]],
+                            'name': [nearest_store['name'], "Your Location"]
                         })
                         
                         # Display the map
@@ -368,6 +380,6 @@ with tab2:
                     except Exception as e:
                         st.warning(f"Could not display map: {e}")
                 else:
-                    st.warning("No convenience stores found nearby.")
+                    st.warning("No stores found nearby.")
         else:
             st.error("Please enter an address to search.")
