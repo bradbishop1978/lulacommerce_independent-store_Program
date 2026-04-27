@@ -1,4 +1,0 @@
-streamlit
-pandas
-geopy
-googlemaps==4.5.3  # Replace with the latest version or the one you need
