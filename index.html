@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lula Commerce — Delivery Program Guide</title>
+<meta name="description" content="Join the Lula Commerce delivery program. Manage DoorDash, Uber Eats, and Grubhub from one simple tablet. 90 days free to start.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────── */
+:root {
+  --pink:       #DE4990;
+  --pink-light: #EB92BD;
+  --pink-pale:  #FFF1EE;
+  --dark:       #2C023B;
+  --dark-2:     #3D0450;
+  --white:      #FFFFFF;
+  --gray-50:    #FAFAFA;
+  --gray-100:   #F3F4F6;
+  --gray-300:   #D1D5DB;
+  --gray-500:   #6B7280;
+  --gray-700:   #374151;
+  --r:          12px;
+  --r-lg:       20px;
+  --sh:         0 4px 20px rgba(44,2,59,.12);
+  --sh-lg:      0 8px 40px rgba(44,2,59,.18);
+  --t:          all .25s ease;
+  --h:          'Gabarito', sans-serif;
+  --b:          'Inter', sans-serif;
+}
+/* ── RESET ──────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--b);color:var(--dark);background:var(--white);line-height:1.6;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+ul{list-style:none}
+/* ── LAYOUT ─────────────────────────────────────────── */
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+.section{padding:88px 0}
+.section-sm{padding:56px 0}
+/* ── TYPOGRAPHY ─────────────────────────────────────── */
+h1,h2,h3,h4{font-family:var(--h);line-height:1.2}
+h1{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:900}
+h2{font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:800}
+h3{font-size:1.15rem;font-weight:700}
+p{color:var(--gray-700);line-height:1.75}
+.label{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--pink);background:var(--pink-pale);padding:4px 12px;border-radius:999px;margin-bottom:16px}
+.section-sub{font-size:1.05rem;color:var(--gray-500);max-width:540px;margin:8px auto 48px}
+.text-center{text-align:center}
+/* ── BUTTONS ────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:999px;font-family:var(--b);font-size:1rem;font-weight:600;cursor:pointer;border:none;transition:var(--t);text-decoration:none;white-space:nowrap}
+.btn-pink{background:linear-gradient(135deg,var(--pink),var(--pink-light));color:#fff;box-shadow:0 4px 20px rgba(222,73,144,.35)}
+.btn-pink:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(222,73,144,.45)}
+.btn-outline{background:transparent;color:var(--dark);border:2px solid var(--gray-300)}
+.btn-outline:hover{border-color:var(--pink);color:var(--pink)}
+.btn-white{background:#fff;color:var(--dark);box-shadow:var(--sh)}
+.btn-white:hover{transform:translateY(-2px);box-shadow:var(--sh-lg)}
+.btn-lg{padding:18px 40px;font-size:1.1rem}
+/* ── HEADER ─────────────────────────────────────────── */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--gray-100);transition:box-shadow .3s}
+.hdr.scrolled{box-shadow:var(--sh)}
+.hdr-in{display:flex;align-items:center;justify-content:space-between;height:70px}
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-svg{height:34px;width:auto}
+.nav{display:flex;align-items:center;gap:28px}
+.nav a{font-size:.88rem;font-weight:500;color:var(--gray-700);transition:var(--t)}
+.nav a:hover{color:var(--pink)}
+/* ── HERO ───────────────────────────────────────────── */
+.hero{background:linear-gradient(155deg,var(--pink-pale) 0%,#fce8f0 55%,#fff 100%);padding:96px 0 80px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;top:-100px;right:-100px;width:480px;height:480px;background:radial-gradient(circle,rgba(222,73,144,.1) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:1fr 420px;gap:64px;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--pink-light);border-radius:999px;padding:6px 16px;font-size:.82rem;font-weight:700;color:var(--pink);margin-bottom:22px;box-shadow:0 2px 12px rgba(222,73,144,.15)}
+.hero-badge .pulse{width:8px;height:8px;background:var(--pink);border-radius:50%;animation:pulse 2s infinite}
+.hero h1{color:var(--dark);margin-bottom:20px}
+.hero h1 span{color:var(--pink)}
+.hero .sub{font-size:1.1rem;max-width:460px;margin-bottom:36px}
+.hero-acts{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.hero-note{margin-top:20px;font-size:.82rem;color:var(--gray-500);display:flex;align-items:center;gap:6px}
+.hero-note svg{color:var(--pink);flex-shrink:0}
+/* Pricing card */
+.hcard{background:#fff;border-radius:var(--r-lg);padding:36px 32px;box-shadow:var(--sh-lg);position:relative;border:1px solid rgba(222,73,144,.12)}
+.hcard-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--pink),var(--pink-light));color:#fff;font-size:.72rem;font-weight:800;padding:5px 18px;border-radius:999px;white-space:nowrap;letter-spacing:.07em;text-transform:uppercase}
+.hcard-trial{text-align:center;background:var(--pink-pale);border-radius:var(--r);padding:20px 16px;margin-bottom:20px}
+.hcard-num{font-family:var(--h);font-size:4.5rem;font-weight:900;color:var(--pink);line-height:1}
+.hcard-days{font-size:1.1rem;font-weight:700;color:var(--dark);margin-top:4px}
+.hcard-sub{font-size:.78rem;color:var(--gray-500);margin-top:4px}
+.hcard-div{border:none;border-top:1px solid var(--gray-100);margin:18px 0}
+.hcard-then{text-align:center;font-size:.82rem;color:var(--gray-500);margin-bottom:4px}
+.hcard-price{text-align:center;font-family:var(--h);font-size:2.4rem;font-weight:900;color:var(--dark);line-height:1}
+.hcard-price span{font-size:1rem;font-weight:500;color:var(--gray-500)}
+.hcard-share{text-align:center;font-size:.88rem;color:var(--gray-700);margin:6px 0 18px}
+.hcard-list{margin-bottom:22px}
+.hcard-list li{display:flex;align-items:flex-start;gap:9px;font-size:.85rem;color:var(--gray-700);padding:5px 0;border-bottom:1px solid var(--gray-100)}
+.hcard-list li:last-child{border-bottom:none}
+.hcard-list .ck{color:var(--pink);flex-shrink:0;font-weight:700}
+/* ── STATS ──────────────────────────────────────────── */
+.stats{background:var(--dark);padding:32px 0}
+.stats-g{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stat{text-align:center}
+.stat-n{font-family:var(--h);font-size:2rem;font-weight:900;color:#fff;line-height:1}
+.stat-l{font-size:.75rem;color:rgba(255,255,255,.55);margin-top:4px}
+/* ── FEATURES ───────────────────────────────────────── */
+.feat-g{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.feat-card{background:#fff;border:1px solid var(--gray-100);border-radius:var(--r);padding:28px;transition:var(--t)}
+.feat-card:hover{border-color:var(--pink-light);box-shadow:var(--sh);transform:translateY(-4px)}
+.feat-icon{width:50px;height:50px;background:var(--pink-pale);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:16px}
+.feat-card h3{margin-bottom:8px;font-size:1rem}
+.feat-card p{font-size:.88rem}
+/* ── ECOSYSTEM ──────────────────────────────────────── */
+.eco{background:var(--gray-50)}
+.eco-img{border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-lg);max-width:920px;margin:0 auto}
+.eco-img img{width:100%;height:auto}
+/* ── VIDEO ──────────────────────────────────────────── */
+.vid-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--r-lg);box-shadow:var(--sh-lg);max-width:820px;margin:0 auto}
+.vid-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+/* ── HOW IT WORKS ───────────────────────────────────── */
+.how{background:linear-gradient(145deg,var(--dark),var(--dark-2))}
+.how h2,.how h3{color:#fff}
+.how .section-sub{color:rgba(255,255,255,.6)}
+.how .label{background:rgba(222,73,144,.2);color:var(--pink-light)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;position:relative}
+.steps::before{content:'';position:absolute;top:28px;left:calc(12.5% + 14px);right:calc(12.5% + 14px);height:2px;background:linear-gradient(90deg,var(--pink),var(--pink-light));opacity:.3}
+.step{text-align:center}
+.step-n{width:56px;height:56px;background:linear-gradient(135deg,var(--pink),var(--pink-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--h);font-size:1.4rem;font-weight:900;color:#fff;margin:0 auto 18px;position:relative;z-index:1;box-shadow:0 4px 16px rgba(222,73,144,.4)}
+.step p{color:rgba(255,255,255,.6);font-size:.88rem}
+.step-t{display:inline-block;background:rgba(222,73,144,.2);color:var(--pink-light);font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:999px;margin-top:10px}
+/* ── PRICING ────────────────────────────────────────── */
+.pricing-g{display:grid;grid-template-columns:1fr 400px;gap:56px;align-items:start}
+.p-card{background:#fff;border:2.5px solid var(--pink);border-radius:var(--r-lg);padding:40px 36px;position:relative;box-shadow:0 8px 40px rgba(222,73,144,.18)}
+.p-popular{position:absolute;top:-16px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--pink),var(--pink-light));color:#fff;font-size:.73rem;font-weight:800;padding:5px 22px;border-radius:999px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.p-trial{background:var(--pink-pale);border-radius:var(--r);padding:22px;text-align:center;margin-bottom:26px}
+.p-trial-big{font-family:var(--h);font-size:3.4rem;font-weight:900;color:var(--pink);line-height:1}
+.p-trial-text{font-size:.95rem;font-weight:700;color:var(--dark);margin-top:4px}
+.p-trial-note{font-size:.78rem;color:var(--gray-500);margin-top:4px}
+.p-div{border:none;border-top:1px solid var(--gray-100);margin:20px 0}
+.p-price-row{text-align:center;margin-bottom:6px}
+.p-amount{font-family:var(--h);font-size:3rem;font-weight:900;color:var(--dark)}
+.p-per{font-size:1rem;color:var(--gray-500);font-weight:400}
+.p-rev{text-align:center;font-size:.92rem;color:var(--gray-700);margin-bottom:6px}
+.p-device{text-align:center;font-size:.82rem;color:var(--gray-500);margin-bottom:24px}
+.p-features{margin-bottom:28px;border-top:1px solid var(--gray-100);padding-top:18px}
+.p-features li{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--gray-700);padding:7px 0;border-bottom:1px solid var(--gray-100)}
+.p-features li:last-child{border-bottom:none}
+.p-features .ck{color:var(--pink);font-weight:700;flex-shrink:0}
+.p-info h3{margin-bottom:14px;font-size:1.35rem}
+.p-info>p{margin-bottom:14px}
+.p-note{background:var(--pink-pale);border-left:3px solid var(--pink);border-radius:0 8px 8px 0;padding:16px 18px;font-size:.88rem;color:var(--gray-700);line-height:1.7}
+.p-note strong{color:var(--dark)}
+/* ── TESTIMONIALS ───────────────────────────────────── */
+.testi-bg{background:var(--gray-50)}
+.testi-g{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.tcard{background:#fff;border-radius:var(--r);padding:32px;border:1px solid var(--gray-100);box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.tquote{font-size:.95rem;color:var(--gray-700);font-style:italic;margin-bottom:20px;line-height:1.75}
+.tquote::before{content:'\201C'}
+.tquote::after{content:'\201D'}
+.tmeta{display:flex;align-items:center;gap:12px}
+.tavatar{width:42px;height:42px;background:linear-gradient(135deg,var(--pink),var(--pink-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--h);font-weight:800;color:#fff;font-size:1rem;flex-shrink:0}
+.tname{font-weight:700;font-size:.88rem}
+.trole{font-size:.78rem;color:var(--gray-500)}
+.tresult{margin-top:16px;padding-top:14px;border-top:1px solid var(--gray-100);font-size:.85rem;font-weight:700;color:var(--pink)}
+/* ── FAQ ────────────────────────────────────────────── */
+.faq-list{max-width:740px;margin:0 auto}
+.faq-item{border:1px solid var(--gray-100);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:var(--t)}
+.faq-item.open{border-color:var(--pink-light);box-shadow:0 2px 12px rgba(222,73,144,.12)}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;cursor:pointer;font-weight:600;font-size:.93rem;color:var(--dark);background:#fff;gap:16px;user-select:none;transition:var(--t)}
+.faq-q:hover{color:var(--pink)}
+.faq-item.open .faq-q{color:var(--pink)}
+.faq-ic{flex-shrink:0;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--gray-300);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--gray-500);transition:var(--t);line-height:1}
+.faq-item.open .faq-ic{background:var(--pink);border-color:var(--pink);color:#fff}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.faq-item.open .faq-a{max-height:500px}
+.faq-ai{padding:0 22px 18px;font-size:.88rem;color:var(--gray-700);line-height:1.8}
+.faq-ai a{color:var(--pink);text-decoration:underline}
+/* ── FINAL CTA ──────────────────────────────────────── */
+.cta-final{background:linear-gradient(140deg,var(--dark),var(--dark-2));text-align:center;padding:100px 0}
+.cta-final h2{color:#fff;margin-bottom:14px}
+.cta-final p{color:rgba(255,255,255,.65);max-width:500px;margin:0 auto 36px;font-size:1.05rem}
+.cta-acts{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-bottom:20px}
+.cta-help{font-size:.82rem;color:rgba(255,255,255,.45)}
+.cta-help a{color:var(--pink-light);text-decoration:underline}
+/* ── FOOTER ─────────────────────────────────────────── */
+.footer{background:#1a0124;padding:36px 0}
+.footer-in{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.footer-links{display:flex;gap:22px}
+.footer-links a{font-size:.82rem;color:rgba(255,255,255,.45);transition:var(--t)}
+.footer-links a:hover{color:var(--pink-light)}
+.footer-copy{font-size:.78rem;color:rgba(255,255,255,.3)}
+/* ── ANIMATION ──────────────────────────────────────── */
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.8)}}
+.fade-up{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.fade-up.vis{opacity:1;transform:translateY(0)}
+/* ── RESPONSIVE ─────────────────────────────────────── */
+@media(max-width:960px){
+  .hero-grid{grid-template-columns:1fr}
+  .hcard{max-width:420px}
+  .feat-g{grid-template-columns:1fr 1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .steps::before{display:none}
+  .stats-g{grid-template-columns:repeat(2,1fr)}
+  .pricing-g{grid-template-columns:1fr}
+  .testi-g{grid-template-columns:1fr}
+  .nav{display:none}
+}
+@media(max-width:560px){
+  .feat-g{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  .hero-acts{flex-direction:column;align-items:flex-start}
+  h1{font-size:2rem}
+  .section{padding:60px 0}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────────── -->
+<header class="hdr" id="hdr">
+  <div class="container">
+    <div class="hdr-in">
+      <a href="#" class="logo-mark">
+        <svg class="logo-svg" viewBox="20 28 142 142" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lg0" x1="94" y1="115" x2="28" y2="72" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF1EE"/><stop offset="1" stop-color="#EB92BD"/></linearGradient>
+            <linearGradient id="lg1" x1="59" y1="108" x2="86" y2="98" gradientUnits="userSpaceOnUse"><stop stop-color="#DE4990"/><stop offset="1" stop-color="#E19898"/></linearGradient>
+            <linearGradient id="lg2" x1="75" y1="88" x2="150" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF1EE"/><stop offset="1" stop-color="#EB92BD"/></linearGradient>
+            <linearGradient id="lg3" x1="115" y1="59" x2="111" y2="84" gradientUnits="userSpaceOnUse"><stop stop-color="#DE4990"/><stop offset="1" stop-color="#E19898"/></linearGradient>
+            <linearGradient id="lg4" x1="115" y1="76" x2="116" y2="165" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF1EE"/><stop offset="1" stop-color="#EB92BD"/></linearGradient>
+            <linearGradient id="lg5" x1="118" y1="125" x2="99" y2="108" gradientUnits="userSpaceOnUse"><stop stop-color="#DE4990"/><stop offset="1" stop-color="#E19898"/></linearGradient>
+          </defs>
+          <path d="M58.9 78.4C55.3 75.4 50.4 74.2 45.8 75.4L24 79.8L30.3 104.5L59.4 98.2L58.7 121.8C58.3 133.3 65.4 143.7 76.2 147.8C78.6 148.7 81.2 147.5 82.1 145.2L90 125.8C93.8 116.3 91 105.4 83.2 98.8L58.9 78.4Z" fill="url(#lg0)"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M53.5 75.5C55.5 76.1 57.3 77.1 58.9 78.4L83.2 98.8C91 105.4 93.8 116.3 89.9 125.7L83 145.3C82.1 147.8 79.2 149.1 76.7 148L76.3 147.8C65.4 143.8 58.3 133.3 58.7 121.8L59.4 99.2C59.4 99.1 59.4 99.1 59.3 99C59.9 95.8 59.9 92.6 59.4 89.2C58.6 84.1 56.5 79.4 53.5 75.5Z" fill="url(#lg1)"/>
+          <path d="M132.9 68.1C137.3 66.4 140.6 62.7 141.8 58.1L148.1 36.9L123.3 30.5L115.2 59L94.6 47C84.6 41.2 72.1 42.4 63.4 50C61.6 51.6 61.3 54.4 62.9 56.3L76.5 72.5C83.1 80.4 94 83.3 103.5 79.6L132.9 68.1Z" fill="url(#lg2)"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M138 64.8C136.6 66.2 134.9 67.4 132.9 68.1L103.5 79.5C94 83.3 83.1 80.4 76.5 72.5L62.4 57C60.6 55 60.9 51.9 63 50.3L63.4 49.9C72.1 42.4 84.6 41.2 94.7 47L114.3 58.5C114.4 58.5 114.4 58.6 114.5 58.6C117 60.5 119.9 62.2 123.1 63.3C128.1 65.1 133.2 65.5 138 64.8Z" fill="url(#lg3)"/>
+          <path d="M102.1 135.7C101.3 140.3 102.7 145.1 106 148.5L120.8 165L139.2 147.3L119.2 125.4L140.2 114.2C150.4 108.8 156 97.5 154.1 86.2C153.7 83.7 151.4 82.1 148.9 82.4L128 85.4C117.8 86.9 109.7 94.6 107.8 104.7L102.1 135.7Z" fill="url(#lg4)"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M102.3 141.8C101.8 139.8 101.8 137.7 102.1 135.7L107.8 104.7C109.7 94.7 117.8 86.9 128 85.4L148.6 81.6C151.2 81.1 153.8 83 154.1 85.6L154.1 86.1C156 97.5 150.4 108.8 140.1 114.2L120.1 124.9C120 125 120 125 119.9 125.1C116.9 126.2 114 127.8 111.4 129.9C107.3 133.2 104.3 137.3 102.3 141.8Z" fill="url(#lg5)"/>
+        </svg>
+        <span style="font-family:var(--h);font-weight:800;font-size:1.25rem;color:var(--dark);letter-spacing:-.01em">Lula Commerce</span>
+      </a>
+      <nav class="nav">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a href="https://onboarding.lulacommerce.com/gen" target="_blank" class="btn btn-pink" style="padding:10px 20px;font-size:.88rem">Get Started Free</a>
+    </div>
+  </div>
+</header>
+
+<!-- ── HERO ───────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-badge"><span class="pulse"></span> Limited Time Offer</div>
+        <h1>Start Earning More.<br><span>Zero Risk.</span></h1>
+        <p class="sub">Lula Commerce puts DoorDash, Uber Eats, and Grubhub into one simple system — so your store earns more from delivery without the extra work.</p>
+        <div class="hero-acts">
+          <a href="https://onboarding.lulacommerce.com/gen" target="_blank" class="btn btn-pink btn-lg">Start Free — 90 Days</a>
+          <a href="#how-it-works" class="btn btn-outline">See How It Works</a>
+        </div>
+        <div class="hero-note">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Complete the onboarding form to get started &nbsp;·&nbsp; Cancel anytime
+        </div>
+      </div>
+      <div class="hcard fade-up">
+        <div class="hcard-badge">✦ Exclusive Offer</div>
+        <div class="hcard-trial">
+          <div class="hcard-num">90</div>
+          <div class="hcard-days">Days Free</div>
+          <div class="hcard-sub">$19/month fee waived for your first 90 days</div>
+        </div>
+        <div class="hcard-div"></div>
+        <div class="hcard-then">After 90 days</div>
+        <div class="hcard-price">$19<span> / month</span></div>
+        <div class="hcard-share">+ 10% revenue share on delivery orders</div>
+        <ul class="hcard-list">
+          <li><span class="ck">✓</span> All marketplace integrations included</li>
+          <li><span class="ck">✓</span> Prebuilt menu, ready to go live</li>
+          <li><span class="ck">✓</span> One tablet for all your orders</li>
+          <li><span class="ck">✓</span> 24/7 support hotline</li>
+        </ul>
+        <a href="https://onboarding.lulacommerce.com/gen" target="_blank" class="btn btn-pink" style="width:100%;justify-content:center">Sign Up Free →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ──────────────────────────────────────────── -->
+<div class="stats">
+  <div class="container">
+    <div class="stats-g">
+      <div class="stat"><div class="stat-n">1,000+</div><div class="stat-l">Retailers on Platform</div></div>
+      <div class="stat"><div class="stat-n">10M+</div><div class="stat-l">Orders Processed</div></div>
+      <div class="stat"><div class="stat-n">99.9%</div><div class="stat-l">Platform Uptime</div></div>
+      <div class="stat"><div class="stat-n">24/7</div><div class="stat-l">Support Coverage</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FEATURES ───────────────────────────────────────── -->
+<section class="section" id="features">
+  <div class="container text-center">
+    <div class="label">What You Get</div>
+    <h2 class="section-title">Everything You Need to Sell Online</h2>
+    <p class="section-sub">One platform. All the tools. None of the headaches.</p>
+    <div class="feat-g">
+      <div class="feat-card fade-up">
+        <div class="feat-icon">🖥️</div>
+        <h3>Unified Order Dashboard</h3>
+        <p>All your DoorDash, Uber Eats, and Grubhub orders appear on a single tablet — no jumping between apps, no missed orders.</p>
+      </div>
+      <div class="feat-card fade-up">
+        <div class="feat-icon">📦</div>
+        <h3>Delivery-Ready Menu</h3>
+        <p>Your menu is set up and optimized for delivery from day one. Adjust pricing, add items, and go live fast — the heavy lifting is done for you.</p>
+      </div>
+      <div class="feat-card fade-up">
+        <div class="feat-icon">🔄</div>
+        <h3>Real-Time Inventory Sync</h3>
+        <p>Menu updates, pricing changes, and availability sync automatically across all platforms — so what customers see is always accurate.</p>
+      </div>
+      <div class="feat-card fade-up">
+        <div class="feat-icon">💰</div>
+        <h3>Weekly Payouts</h3>
+        <p>Every marketplace remits your funds (less their fees) directly to you every week — reliable, predictable, and hassle-free.</p>
+      </div>
+      <div class="feat-card fade-up">
+        <div class="feat-icon">🛠️</div>
+        <h3>Lula Handles the Rest</h3>
+        <p>Menu updates, outage fixes, customer issues, marketplace disputes — Lula's team manages it all so your staff stays focused on the store.</p>
+      </div>
+      <div class="feat-card fade-up">
+        <div class="feat-icon">📞</div>
+        <h3>24/7 Support Hotline</h3>
+        <p>Real help, any time. Reach Lula's support team around the clock for order issues, menu questions, or anything else that comes up.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ECOSYSTEM ──────────────────────────────────────── -->
+<section class="section eco">
+  <div class="container text-center">
+    <div class="label">The Platform</div>
+    <h2 class="section-title">One Platform. Every Channel.</h2>
+    <p class="section-sub">Lula connects your store to the full delivery ecosystem — from major marketplaces to your own branded storefront.</p>
+    <div class="eco-img fade-up">
+      <img src="https://cdn.prod.website-files.com/661bb496cf51462d74949165/67e3156c60595f10c86023c2_Lula_Ecosystem.webp" alt="Lula Commerce Ecosystem — connecting your store to DoorDash, Uber Eats, Grubhub, and more" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ── VIDEO ──────────────────────────────────────────── -->
+<section class="section">
+  <div class="container text-center">
+    <div class="label">Watch</div>
+    <h2 class="section-title">See It In Action</h2>
+    <p class="section-sub">A quick look at how Lula Commerce works for your store.</p>
+    <div class="vid-wrap fade-up">
+      <iframe src="https://player.vimeo.com/video/970879509?title=0&byline=0&portrait=0&badge=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Lula Commerce — How It Works"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ───────────────────────────────────── -->
+<section class="section how" id="how-it-works">
+  <div class="container text-center">
+    <div class="label">Onboarding</div>
+    <h2 class="section-title">Your Onboarding Journey</h2>
+    <p class="section-sub">A guided process from sign-up to going live on every major delivery platform.</p>
+    <div class="steps">
+      <div class="step fade-up">
+        <div class="step-n">1</div>
+        <h3>Sign Up</h3>
+        <p>Fill out your store info, set your deposit account, and complete billing setup via Stripe.</p>
+        <span class="step-t">~5 minutes</span>
+      </div>
+      <div class="step fade-up">
+        <div class="step-n">2</div>
+        <h3>Menu Setup</h3>
+        <p>Lula configures your delivery menu. Start with a prebuilt base — adjust pricing and add best-sellers after launch.</p>
+        <span class="step-t">Lula handles it</span>
+      </div>
+      <div class="step fade-up">
+        <div class="step-n">3</div>
+        <h3>Activate Your Tablet</h3>
+        <p>Receive your pre-loaded Lula tablet, connect to WiFi, and log in. Your tablet is yours to keep — no returns needed.</p>
+        <span class="step-t">~15 minutes</span>
+      </div>
+      <div class="step fade-up">
+        <div class="step-n">4</div>
+        <h3>Go Live!</h3>
+        <p>Lula activates your store across DoorDash, Uber Eats, and Grubhub simultaneously. Orders start coming in.</p>
+        <span class="step-t">Immediate</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ────────────────────────────────────────── -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:56px">
+      <div class="label">Pricing</div>
+      <h2 class="section-title">Simple, Transparent Pricing</h2>
+      <p class="section-sub">No hidden fees. No long-term contracts. No monthly fee for your first 90 days.</p>
+    </div>
+    <div class="pricing-g">
+      <div class="p-card fade-up">
+        <div class="p-popular">✦ 90 Days Free to Start</div>
+        <div class="p-trial">
+          <div class="p-trial-big">90 Days</div>
+          <div class="p-trial-text">Completely Free</div>
+          <div class="p-trial-note">$19/month waived for 90 days — the 10% only applies when you start earning</div>
+        </div>
+        <div class="p-div"></div>
+        <div class="p-price-row">
+          <span class="p-amount">$19</span><span class="p-per"> / month per location</span>
+        </div>
+        <div class="p-rev">+ 10% revenue share on delivery orders</div>
+        <div class="p-device">Tablet: $249 one-time purchase — yours to keep</div>
+        <ul class="p-features">
+          <li><span class="ck">✓</span> All marketplace integrations (DoorDash, Uber Eats, Grubhub)</li>
+          <li><span class="ck">✓</span> Delivery-ready menu setup</li>
+          <li><span class="ck">✓</span> Real-time inventory sync across all channels</li>
+          <li><span class="ck">✓</span> Customer issue &amp; dispute management</li>
+          <li><span class="ck">✓</span> 24/7 support hotline</li>
+          <li><span class="ck">✓</span> Price markup capability to cover delivery costs</li>
+        </ul>
+        <a href="https://onboarding.lulacommerce.com/gen" target="_blank" class="btn btn-pink btn-lg" style="width:100%;justify-content:center">Get Started — Complete Onboarding →</a>
+      </div>
+      <div class="p-info fade-up">
+        <h3>Why 90 days with no monthly fee?</h3>
+        <p>We want you to sign up, go live, and earn real delivery revenue before your first monthly invoice. The $19/month starts after 90 days — so the platform proves its value first.</p>
+        <p>The 10% revenue share is active from when you go live — because when you earn, we earn. That's the model.</p>
+        <div class="p-note">
+          <strong>What is the 10% revenue share?</strong><br><br>
+          The 10% is Lula's fee for the managed AI services running behind the scenes on your behalf — automated order routing, menu syncing, uptime monitoring, dispute handling, and more. It's charged only on delivery orders you actually receive, so we're directly tied to your success. When you earn, we earn.
+        </div>
+        <div style="margin-top:24px;padding:20px;background:var(--gray-50);border-radius:var(--r)">
+          <div style="font-weight:700;font-size:.95rem;margin-bottom:10px">Questions? We're here.</div>
+          <p style="font-size:.88rem;margin-bottom:14px">Visit our help center or reach out to your account team directly.</p>
+          <a href="https://help.lulacommerce.com/en/" target="_blank" class="btn btn-outline" style="font-size:.88rem;padding:10px 20px">Visit Help Center →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ───────────────────────────────────── -->
+<section class="section testi-bg">
+  <div class="container text-center">
+    <div class="label">Results</div>
+    <h2 class="section-title">What Our Partners Are Saying</h2>
+    <p class="section-sub">Real results from real independent operators.</p>
+    <div class="testi-g">
+      <div class="tcard fade-up">
+        <div class="tquote">One of the things I really love about Lula — it's not just about 'here's the opportunity,' it's 'here's where you're winning, and here's how you can enhance that win more rapidly and more frequently.'</div>
+        <div class="tmeta">
+          <div class="tavatar">D</div>
+          <div>
+            <div class="tname">Diversified Management Group</div>
+            <div class="trole">Multi-location independent operator</div>
+          </div>
+        </div>
+        <div class="tresult">📈 223% increase in same-store revenue &nbsp;·&nbsp; 86% drop in cart abandonment</div>
+      </div>
+      <div class="tcard fade-up">
+        <div class="tquote">We have one person managing all our e-commerce channels. We are looking forward to solutions that can help offset and augment our standing and propel us forward.</div>
+        <div class="tmeta">
+          <div class="tavatar">J</div>
+          <div>
+            <div class="tname">Jacksons Food Stores</div>
+            <div class="trole">Regional convenience chain</div>
+          </div>
+        </div>
+        <div class="tresult">📈 221% growth in same-store digital sales &nbsp;·&nbsp; 97.7% order completion rate</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ────────────────────────────────────────────── -->
+<section class="section" id="faq">
+  <div class="container text-center">
+    <div class="label">FAQ</div>
+    <h2 class="section-title">Common Questions</h2>
+    <p class="section-sub">Everything you need to know before signing up.</p>
+    <div class="faq-list" style="text-align:left">
+
+      <div class="faq-item">
+        <div class="faq-q">What is Lula Commerce?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">Lula Commerce makes delivery easy for independent store operators by consolidating DoorDash, Uber Eats, and Grubhub into one system — the Lula app. You don't have to manage multiple apps, menus, or support issues. Lula handles all of that for you — updates, fixes, outages, customer issues, everything — so your staff can just accept orders and stay focused on the store.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Why not just sign up with DoorDash or Uber Eats directly?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">You can — but managing each marketplace separately means a different tablet, different operational requirements, and different systems for updating your menu and pricing. Lula's operators consistently say that working with each platform independently becomes unmanageable fast. Lula takes all of that complexity away: you work with us, and we publish your inventory and pricing to all channels while bringing every order into one simple interface.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">What if I'm already on DoorDash or Uber Eats?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">Perfect — Lula will consolidate your existing marketplace presence into a single dashboard so you stop managing multiple apps. You'll also gain access to any marketplaces you're not yet on, and Lula handles all the ongoing management across every channel. Many of our operators come to us already active on one or two platforms and find that Lula saves them significant time while increasing their total order volume.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Do I need extra staff to manage delivery orders?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">No. That's exactly the problem Lula solves. All marketplace orders come into a single tablet, so your existing team accepts them in one place — the same way you'd handle any other order. Lula's team handles refunds, disputes, menu issues, and marketplace communications on your behalf, 24/7. You don't need a dedicated digital commerce manager.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Can I mark up my prices to cover delivery costs?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">Yes. You can designate a markup on your delivery menu, and most consumers expect to pay a small premium for items delivered. This is a common practice among Lula's operators and an effective way to maintain your margins while still offering competitive delivery pricing.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Can I sell age-restricted items through delivery?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">In most areas, yes. Delivery programs follow state, county, and local laws. The delivery service providers (Uber Eats, DoorDash) handle ID verification and dispatch only qualified drivers for deliveries of age-restricted items. Lula supports age-restricted item configurations in your menu setup.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">How does my menu get set up and updated?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">To get you live fast, Lula starts with a prebuilt delivery menu configured for your store. Once you're live, you're free to adjust pricing and submit additional items to be added. Changes sync automatically across all marketplaces — you don't need to update each platform separately. Lula's team handles the technical work; you just tell us what you want.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">How do I get paid, and how often?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">Each marketplace (DoorDash, Uber Eats, Grubhub) remits funds directly to you, less their standard fees, every week. Lula does not hold your funds — payouts come directly from each platform on their regular weekly schedule. You'll set up your deposit account during onboarding so everything is wired correctly from day one.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">What is the 10% revenue share?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">The 10% revenue share is the fee for Lula's managed AI services — the automated systems running on your behalf around the clock: order routing, menu syncing across all marketplaces, uptime monitoring, dispute resolution, and more. It's only charged on delivery orders you actually receive, which means we only earn when you do.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">What happens after the 90 days?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">After 90 days, the $19/month fee kicks in per location. The 10% revenue share is already active from when you went live — that part doesn't change. You'll receive a reminder as your 90-day period ends, and monthly billing begins automatically. There's no long-term contract — you can cancel at any time.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">How long does it take to get set up?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">Most stores are live within one week of signing up. The sign-up process itself takes about 5 minutes. Lula handles the menu configuration and marketplace setup on your behalf. Once your tablet arrives, connecting and going live takes about 15 minutes. Lula's managed-services team coordinates everything — you don't need technical expertise.</div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">How do I get started?<span class="faq-ic">+</span></div>
+        <div class="faq-a"><div class="faq-ai">Click the button below or visit <a href="https://onboarding.lulacommerce.com/gen" target="_blank">onboarding.lulacommerce.com/gen</a> to complete your sign-up form. You'll receive an email with next steps — including Stripe billing setup, deposit account configuration, and store info collection. If you have questions at any point, visit our <a href="https://help.lulacommerce.com/en/" target="_blank">Help Center</a> or reach out to your account team.</div></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── FINAL CTA ──────────────────────────────────────── -->
+<section class="cta-final">
+  <div class="container">
+    <h2>Ready to Start Earning More?</h2>
+    <p>Join over 1,000 independent operators already using Lula Commerce to grow their delivery revenue — risk-free for 90 days.</p>
+    <div class="cta-acts">
+      <a href="https://onboarding.lulacommerce.com/gen" target="_blank" class="btn btn-pink btn-lg">Sign Up Free — 90 Days</a>
+      <a href="https://help.lulacommerce.com/en/" target="_blank" class="btn btn-white btn-lg">Visit Help Center</a>
+    </div>
+    <div class="cta-help">Questions? <a href="https://help.lulacommerce.com/en/" target="_blank">help.lulacommerce.com</a></div>
+  </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-in">
+      <span style="font-family:var(--h);font-weight:800;font-size:1.1rem;color:rgba(255,255,255,.5)">Lula Commerce</span>
+      <div class="footer-links">
+        <a href="https://onboarding.lulacommerce.com/gen" target="_blank">Sign Up</a>
+        <a href="https://help.lulacommerce.com/en/" target="_blank">Help Center</a>
+      </div>
+      <span class="footer-copy">© 2025 Lula Commerce. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Header scroll shadow
+const hdr = document.getElementById('hdr');
+window.addEventListener('scroll', () => {
+  hdr.classList.toggle('scrolled', window.scrollY > 10);
+});
+
+// FAQ accordion
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    // close all
+    document.querySelectorAll('.faq-item.open').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.faq-ic').textContent = '+';
+    });
+    // open clicked (unless it was already open)
+    if (!isOpen) {
+      item.classList.add('open');
+      q.querySelector('.faq-ic').textContent = '×';
+    }
+  });
+});
+
+// Fade-up on scroll
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      // stagger siblings
+      const siblings = [...e.target.parentElement.querySelectorAll('.fade-up')];
+      const idx = siblings.indexOf(e.target);
+      setTimeout(() => e.target.classList.add('vis'), idx * 100);
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>
