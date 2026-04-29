@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Guide — Lula Commerce</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--dark:#2C023B;--pink:#DE4990;--pink-light:#EB92BD;--pink-pale:#FFF1EE;--border:#EDE8F5;--text:#1A1A2E;--muted:#6B6B8A;--bg:#F8F5FF;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+    .header{background:var(--dark);padding:20px 32px;display:flex;align-items:center;gap:14px}
+    .htitle{font-family:'Gabarito',sans-serif;font-size:22px;font-weight:800;color:#fff}
+    .hsub{font-size:13px;color:var(--pink-light);margin-top:3px}
+    .main{max-width:860px;margin:0 auto;padding:40px 24px}
+    h2{font-family:'Gabarito',sans-serif;font-size:22px;font-weight:800;color:var(--dark);margin-bottom:8px;margin-top:40px}
+    h2:first-of-type{margin-top:0}
+    h3{font-family:'Gabarito',sans-serif;font-size:16px;font-weight:700;color:var(--dark);margin-bottom:6px;margin-top:24px}
+    p{font-size:14px;color:var(--text);margin-bottom:12px;line-height:1.7}
+    .card{background:#fff;border-radius:14px;border:1px solid var(--border);padding:24px;margin-bottom:20px}
+    .dash-card{display:flex;gap:16px;align-items:flex-start}
+    .dash-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+    .dash-icon-a{background:linear-gradient(135deg,#DE4990,#2C023B)}
+    .dash-icon-b{background:linear-gradient(135deg,#2C023B,#DE4990)}
+    .dash-name{font-family:'Gabarito',sans-serif;font-size:18px;font-weight:800;color:var(--dark);margin-bottom:4px}
+    .dash-desc{font-size:13px;color:var(--muted);margin-bottom:10px}
+    .dash-link{display:inline-block;padding:7px 16px;background:var(--pink);color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none}
+    .dash-link:hover{background:#C73F7E}
+    .dash-link-s{display:inline-block;padding:7px 16px;background:var(--pink-pale);color:var(--dark);border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;margin-left:8px}
+    .step-list{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+    .step{display:flex;gap:14px;align-items:flex-start}
+    .step-num{width:28px;height:28px;border-radius:50%;background:var(--pink);color:#fff;font-family:'Gabarito',sans-serif;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .step-body{font-size:14px;color:var(--text);line-height:1.6}
+    .step-body strong{color:var(--dark)}
+    .tip{background:var(--pink-pale);border-left:3px solid var(--pink);padding:12px 16px;border-radius:0 8px 8px 0;font-size:13px;color:var(--text);margin:16px 0;line-height:1.6}
+    .tip strong{color:var(--dark)}
+    .section-divider{height:1px;background:var(--border);margin:32px 0}
+    .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:var(--pink-pale);color:var(--dark);margin-right:4px;margin-bottom:4px}
+    .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .metric-item{background:var(--bg);border-radius:8px;padding:10px 12px}
+    .metric-item-name{font-size:12px;font-weight:700;color:var(--dark);margin-bottom:2px}
+    .metric-item-desc{font-size:12px;color:var(--muted)}
+    @media(max-width:600px){.metric-grid{grid-template-columns:1fr}.dash-card{flex-direction:column}.main{padding:20px 16px}}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <svg width="38" height="38" viewBox="0 0 120 120" fill="none">
+    <defs>
+      <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#DE4990"/><stop offset="100%" stop-color="#2C023B"/></linearGradient>
+    </defs>
+    <rect width="120" height="120" rx="22" fill="url(#hg)"/>
+    <rect x="24" y="36" width="72" height="8" rx="4" fill="white" fill-opacity=".9"/>
+    <rect x="24" y="54" width="52" height="8" rx="4" fill="white" fill-opacity=".6"/>
+    <rect x="24" y="72" width="64" height="8" rx="4" fill="white" fill-opacity=".8"/>
+  </svg>
+  <div>
+    <div class="htitle">Dashboard Guide</div>
+    <div class="hsub">Lula Commerce &mdash; How to use and read both dashboards</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- The two dashboards -->
+  <h2>The Two Dashboards</h2>
+
+  <div class="card">
+    <div class="dash-card">
+      <div class="dash-icon dash-icon-a">📈</div>
+      <div>
+        <div class="dash-name">Store Signing Progress</div>
+        <div class="dash-desc">Tracks stores signed toward the Q2 goal of 107 stores in 10 weeks. You enter data manually.</div>
+        <a href="store_progress_dashboard.html" class="dash-link">Open Dashboard A</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="dash-card">
+      <div class="dash-icon dash-icon-b">📞</div>
+      <div>
+        <div class="dash-name">Call Activity Tracker</div>
+        <div class="dash-desc">Pulls live call data from Airtable (SimOne's call logs). Shows funnel, KPIs, and every call record. Read-only — data comes directly from what SimOne logs.</div>
+        <a href="call_activity_dashboard.html" class="dash-link">Open Dashboard B</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- Dashboard A -->
+  <h2>Dashboard A — Store Signing Progress</h2>
+
+  <h3>What it's for</h3>
+  <p>This is your weekly tracker for the Q2 goal: <strong>107 stores signed in 10 weeks</strong> starting April 1, 2026. It tells you whether you're on pace, ahead, or falling behind — and when you'll hit the goal at your current rate.</p>
+
+  <h3>How to enter data</h3>
+  <div class="step-list">
+    <div class="step"><div class="step-num">1</div><div class="step-body">Scroll to the <strong>Add Store Signings</strong> form at the bottom of the page.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">Set the <strong>date</strong> of the signing (when the store committed, not when you filed the paperwork).</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">Choose the <strong>brand</strong> from the dropdown.</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">Enter the <strong>number of stores signed</strong> in that batch (you can log multiple stores at once).</div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body">Add optional <strong>notes</strong> (market, rep name, anything useful). Click <strong>+ Add Entry</strong>.</div></div>
+  </div>
+
+  <div class="tip"><strong>Tip:</strong> Log entries by the actual signing date, not today's date. The "current pace" metric looks at the last 7 calendar days, so accurate dates give you accurate pace readings.</div>
+
+  <h3>How to read the dashboard</h3>
+
+  <div class="metric-grid">
+    <div class="metric-item"><div class="metric-item-name">Progress bar</div><div class="metric-item-desc">% of 107 stores signed. The bar turns pink as you close in.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Status card</div><div class="metric-item-desc">Green = on track (≥10.7/wk), Yellow = at risk (8–10.6/wk), Red = behind (&lt;8/wk).</div></div>
+    <div class="metric-item"><div class="metric-item-name">Current Pace</div><div class="metric-item-desc">Stores signed in the last 7 days. This is what the status color is based on.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Required Pace</div><div class="metric-item-desc">Stores/week needed from today to hit 107 by the end of week 10.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Projection</div><div class="metric-item-desc">The plain-English sentence tells you exactly when you'll hit 107 at current pace — and how late (or early) that is.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Cumulative line chart</div><div class="metric-item-desc">Your actual progress (pink) vs the required pace line (gray dashes). If you're above the gray line, you're ahead.</div></div>
+  </div>
+
+  <h3>Managing your data</h3>
+  <p>All data is stored in your browser (<em>localStorage</em>). It stays between sessions but is specific to this browser and device. Use <strong>Export CSV</strong> to back up your entries or share them. Use <strong>Import CSV</strong> to restore from a backup or load entries from a spreadsheet.</p>
+
+  <div class="section-divider"></div>
+
+  <!-- Dashboard B -->
+  <h2>Dashboard B — Call Activity Tracker</h2>
+
+  <h3>Getting started</h3>
+  <p>Open the dashboard — it connects to Airtable automatically and loads all call records. The first load fetches everything fresh. Subsequent visits use cached data instantly and refresh in the background.</p>
+  <div class="tip"><strong>Hit Refresh</strong> in the top-right corner any time you want to pull the latest records from Airtable mid-session.</div>
+
+  <h3>Using filters</h3>
+  <p>The filter bar at the top lets you slice the data before anything is computed. All KPIs, charts, and the table respond immediately — no page reload needed.</p>
+  <p>
+    <span class="tag">Brand</span> Filter by one or more brands (KKC, Circle K, etc.)<br>
+    <span class="tag">Date Range</span> Default is the last 7 days. Set a wider range for trend analysis.<br>
+    <span class="tag">Call Status</span> Filter by Completed, No Answer, Voicemail, etc.<br>
+    <span class="tag">End Result</span> Filter to specific outcomes (e.g. only show "Callback Scheduled" calls).
+  </p>
+  <p>Click <strong>Clear Filters</strong> to reset everything back to the default 7-day view.</p>
+
+  <h3>How to read the KPIs</h3>
+
+  <div class="metric-grid">
+    <div class="metric-item"><div class="metric-item-name">Volume row</div><div class="metric-item-desc">Total calls, calls today, this week, and average call duration.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Reach row</div><div class="metric-item-desc">How often SimOne gets through to the actual decision-maker and captures their info.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Outcomes row</div><div class="metric-item-desc">Follow-up rate, voicemail rate, and SMS/email permission rates (calculated against answered calls only).</div></div>
+    <div class="metric-item"><div class="metric-item-name">Interest level bar</div><div class="metric-item-desc">Breakdown of email interest from Airtable: high/medium/low/none. More green = stronger pipeline.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Top End Results</div><div class="metric-item-desc">The most common call outcomes, ranked by frequency. Quick snapshot of what's happening on calls.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Callback Scheduled</div><div class="metric-item-desc">Count of records with a specific callback time set — your warm pipeline for the next batch.</div></div>
+  </div>
+
+  <h3>Conversion funnel</h3>
+  <p>The funnel shows how calls move through the pipeline. Each stage narrows as fewer records qualify:</p>
+  <p>
+    <strong>Total Calls Dialed</strong> → <strong>Calls Connected</strong> (completed/answered) → <strong>Reached Decision Maker</strong> → <strong>Expressed Interest</strong> (follow-up or high interest) → <strong>Callback Scheduled</strong> → <strong>Store Signed</strong>
+  </p>
+  <p>The percentage on the right of each stage shows the conversion rate from the previous step — not from total. A low DM-to-interest rate means the pitch is where to focus. A low connected-to-DM rate means gatekeeper handling.</p>
+
+  <h3>Charts</h3>
+  <div class="metric-grid">
+    <div class="metric-item"><div class="metric-item-name">Daily Volume</div><div class="metric-item-desc">Call volume per day for the last 14 days. Good for spotting gaps in outreach cadence.</div></div>
+    <div class="metric-item"><div class="metric-item-name">End Result Distribution</div><div class="metric-item-desc">Donut chart of all outcome types. Shows the mix of voicemails, no-answers, callbacks, etc.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Primary Objections</div><div class="metric-item-desc">Most common objections SimOne logged. Informs which objection scripts need refinement.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Brand Performance</div><div class="metric-item-desc">Calls, DM reach, and follow-ups per brand. Useful for comparing brand-level results.</div></div>
+    <div class="metric-item"><div class="metric-item-name">Duration by Outcome</div><div class="metric-item-desc">Average call length per end result. Longer calls on signed/callback outcomes is a healthy sign.</div></div>
+  </div>
+
+  <h3>Reading the charts — what they tell you and what to do about it</h3>
+
+  <h3>End Result Distribution</h3>
+  <p>This donut chart shows the <strong>proportion of each outcome type</strong> across all filtered calls. Its value is in spotting domination — when one outcome is eating an outsized share of your calls.</p>
+  <div class="tip">
+    <strong>What to look for:</strong> If 70%+ of the donut is "No Answer," SimOne isn't getting through — the problem is reach (wrong time of day, wrong number type). If 40%+ is "Voicemail," timing is the issue — consider shifting call windows to mid-morning or post-lunch. If "Callback Scheduled" or "Signed" has a visible slice, that's your pipeline working. The goal is to grow those slices at the expense of the No Answer and Voicemail slices.
+  </div>
+  <p>This chart lives alongside <strong>Top End Results</strong> — the donut gives you the visual weight of each outcome (what's dominating), while Top End Results gives you the raw counts and the exact Airtable labels.</p>
+
+  <h3>Top End Results</h3>
+  <p>Shows the five most frequent outcomes as logged verbatim in Airtable by SimOne. Unlike the donut, this is your <strong>data integrity check</strong> — if you see inconsistent capitalizations ("No answer" vs "No Answer") or unexpected values you don't recognize, that's a sign SimOne's outcome classification needs review.</p>
+  <div class="tip">
+    <strong>What to do:</strong> The labels here should be clean and consistent. If you see more than one pill representing the same real outcome (e.g., "Voicemail" and "voicemail"), the underlying VAPI analysis plan needs to enforce a fixed enum. Each unique label is its own slice in the donut — messy labels artificially fragment the chart.
+  </div>
+
+  <h3>Brand Performance</h3>
+  <p>Compares brands side by side across three metrics: <strong>calls made, decision-maker reach rate, and follow-up scheduled rate</strong>. Volume alone doesn't tell you which brand is working — this chart shows which brand converts best per call.</p>
+  <div class="tip">
+    <strong>What to do:</strong> If one brand has high call volume but low DM reach, SimOne is hitting the wrong contacts or getting stuck at gatekeepers for that brand. If DM reach is strong but follow-up rate is low, the pitch for that brand needs refinement. The brand with the strongest combined DM + follow-up rate is where you double outreach — more calls there, not spread evenly.
+  </div>
+
+  <h3>Conversion Funnel</h3>
+  <p>This is the <strong>most diagnostic view in the dashboard</strong>. It doesn't just show you how many calls succeeded — it shows you <em>exactly where calls are breaking down</em>. Each stage shows its conversion rate from the previous step (not from total).</p>
+  <div class="tip">
+    <strong>How to read the drop-offs:</strong><br>
+    — <strong>Low Connected → DM rate:</strong> Gatekeeper problem. SimOne is connecting but not getting transferred. Focus on the gatekeeper script.<br>
+    — <strong>Low DM → Interest rate:</strong> Pitch problem. The decision maker is hearing SimOne but not engaging. Review the discovery questions and opening.<br>
+    — <strong>Low Interest → Callback rate:</strong> Follow-up process problem. Interest is there but not converting to a scheduled next step. Review how SimOne closes State 7.<br>
+    — <strong>Low Callback → Signed rate:</strong> Human follow-through gap. The warm pipeline exists but isn't being worked. This is a rep action item, not a SimOne fix.
+  </div>
+
+  <h3>Call log table</h3>
+  <p>Shows every filtered call record — 25 rows per page. Click any column header to sort. <strong>Click any row</strong> to open a detail panel on the right with every field for that call, including the full call summary that SimOne logged.</p>
+  <p>Click <strong>Export CSV</strong> to download all filtered records (not just the current page).</p>
+
+  <div class="section-divider"></div>
+
+  <!-- Using them together -->
+  <h2>Using Both Dashboards Together</h2>
+  <p>Dashboard A answers: <em>"Are we signing stores fast enough to hit the goal?"</em><br>Dashboard B answers: <em>"How are the calls performing, and where is SimOne in the funnel?"</em></p>
+
+  <div class="tip">
+    <strong>Weekly review workflow:</strong> Open Dashboard B first — check the funnel conversion and objection chart to see where calls are stalling. Then open Dashboard A to check if the signing pace is on track. If calls are converting but signing pace is lagging, the gap is in the follow-up handoff. If calls aren't connecting, the issue is reach.
+  </div>
+
+  <p style="font-size:12px;color:var(--muted);margin-top:32px;text-align:center">Lula Commerce &mdash; SimOne Outreach Intelligence Suite &mdash; Q2 2026</p>
+  <div style="height:32px"></div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Signing Progress — Lula Commerce</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --dark:#2C023B; --pink:#DE4990; --pink-light:#EB92BD;
+      --pink-pale:#FFF1EE; --coral:#ED8585; --gray:#AEAEAE;
+      --bg:#F8F5FF; --border:#EDE8F5; --text:#1A1A2E; --muted:#6B6B8A;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .header{background:var(--dark);padding:16px 32px;display:flex;align-items:center;gap:14px}
+    .hlogo{display:flex;align-items:center;gap:12px}
+    .htitle{font-family:'Gabarito',sans-serif;font-size:20px;font-weight:800;color:#fff}
+    .hsub{font-size:12px;color:var(--pink-light);margin-top:2px}
+    .hmeta{margin-left:auto;font-size:12px;color:var(--gray);text-align:right}
+    .main{max-width:1200px;margin:0 auto;padding:24px}
+    .card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:20px}
+    .gap{margin-bottom:20px}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+    .stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px}
+    .stat-val{font-family:'Gabarito',sans-serif;font-size:36px;font-weight:900;color:var(--dark);line-height:1}
+    .stat-sub{font-size:12px;color:var(--muted);margin-top:4px}
+    .status-card{border-radius:12px;border:2px solid var(--border);padding:20px;background:#fff}
+    .status-card.on-track{border-color:#10B981}
+    .status-card.at-risk{border-color:#F59E0B}
+    .status-card.behind{border-color:var(--coral)}
+    .badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
+    .badge.on-track{background:#D1FAE5;color:#065F46}
+    .badge.at-risk{background:#FEF3C7;color:#92400E}
+    .badge.behind{background:#FEE2E2;color:#991B1B}
+    .sm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .sm-lbl{font-size:11px;color:var(--muted);margin-bottom:2px}
+    .sm-val{font-family:'Gabarito',sans-serif;font-size:18px;font-weight:800;color:var(--dark)}
+    .proj-card{border-radius:12px;border:1px solid var(--border);padding:20px;background:#fff}
+    .proj-sentence{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:16px;background:var(--pink-pale);padding:12px 16px;border-radius:8px;border-left:3px solid var(--pink)}
+    .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .proj-lbl{font-size:11px;color:var(--muted);margin-bottom:2px}
+    .proj-val{font-family:'Gabarito',sans-serif;font-size:15px;font-weight:800;color:var(--dark)}
+    .chart-title{font-family:'Gabarito',sans-serif;font-size:14px;font-weight:700;color:var(--dark);margin-bottom:14px}
+    .chart-empty{display:flex;align-items:center;justify-content:center;height:160px;color:var(--gray);font-size:13px}
+    .prog-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+    .prog-lbl{font-size:13px;color:var(--muted)}
+    .prog-pct{font-family:'Gabarito',sans-serif;font-size:18px;font-weight:800;color:var(--pink)}
+    .prog-outer{height:12px;background:var(--border);border-radius:6px;overflow:hidden}
+    .prog-inner{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--pink),var(--pink-light));transition:width .4s}
+    .form-label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:6px}
+    .form-input,.form-select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:#fff;outline:none}
+    .form-input:focus,.form-select:focus{border-color:var(--pink)}
+    .fgrid{display:grid;grid-template-columns:160px 220px 120px 1fr;gap:12px;align-items:end}
+    .factions{display:flex;gap:8px;margin-top:12px}
+    .btn{padding:10px 20px;border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+    .btn-p{background:var(--pink);color:#fff}.btn-p:hover{background:#C73F7E}
+    .btn-s{background:var(--pink-pale);color:var(--dark);border:1.5px solid var(--border)}.btn-s:hover{background:#F0E8FF}
+    .btn-d{background:#FEE2E2;color:#991B1B}.btn-d:hover{background:#FECACA}
+    .btn-sm{padding:5px 12px;font-size:12px}
+    .tbl-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+    .tbl-count{font-size:13px;color:var(--muted);flex:1}
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:2px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+    th:hover{color:var(--pink)}
+    td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:var(--pink-pale)}
+    .tbl-empty{text-align:center;padding:40px;color:var(--gray);font-size:13px}
+    .pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;background:var(--pink-pale);color:var(--dark)}
+    .alert{background:#FEE2E2;color:#991B1B;padding:12px 16px;border-radius:8px;margin-bottom:16px;display:none;align-items:center;gap:8px;font-size:13px}
+    .alert button{margin-left:auto;background:none;border:none;cursor:pointer;color:#991B1B;font-size:16px;line-height:1}
+    .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+    .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .chart-legend{display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--muted)}
+    .section-title{font-family:'Gabarito',sans-serif;font-size:14px;font-weight:700;color:var(--dark)}
+    @media(max-width:768px){
+      .grid4{grid-template-columns:repeat(2,1fr)}
+      .grid2{grid-template-columns:1fr}
+      .fgrid{grid-template-columns:1fr 1fr}
+      .main{padding:16px}
+      .header{padding:12px 16px}
+    }
+    @media(max-width:480px){
+      .grid4{grid-template-columns:1fr}
+      .fgrid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="hlogo">
+    <svg width="38" height="38" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g0" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#DE4990"/><stop offset="100%" stop-color="#2C023B"/></linearGradient>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#EB92BD"/><stop offset="100%" stop-color="#DE4990"/></linearGradient>
+        <linearGradient id="g2" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#2C023B"/><stop offset="100%" stop-color="#DE4990"/></linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="22" fill="url(#g0)"/>
+      <circle cx="60" cy="42" r="20" fill="none" stroke="url(#g1)" stroke-width="7"/>
+      <circle cx="60" cy="42" r="8" fill="white" fill-opacity=".9"/>
+      <path d="M30 82 Q45 68 60 72 Q75 76 90 62" stroke="url(#g2)" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M44 98 L60 78 L76 98" stroke="white" stroke-opacity=".8" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div class="htitle">Store Signing Progress</div>
+      <div class="hsub">Lula Commerce — Q2 2026 Goal Tracker</div>
+    </div>
+  </div>
+  <div class="hmeta">
+    <div>107 store goal &middot; 10 weeks &middot; Q2 2026</div>
+    <div id="hdr-date" style="margin-top:4px"></div>
+  </div>
+</div>
+
+<div class="main">
+  <div id="err-banner" class="alert">
+    <span id="err-msg"></span>
+    <button onclick="hideErr()">&#x2715;</button>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="card gap">
+    <div class="prog-hdr">
+      <span id="prog-text" class="prog-lbl">0 of 107 stores signed</span>
+      <span id="prog-pct" class="prog-pct">0%</span>
+    </div>
+    <div class="prog-outer"><div id="prog-fill" class="prog-inner" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted)">
+      <span>Apr 1 &mdash; Q2 Start</span>
+      <span>Required: 10.7 stores/week</span>
+      <span>Jun 10 &mdash; Goal Date</span>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid4">
+    <div class="card">
+      <div class="stat-label">Today</div>
+      <div id="s-today" class="stat-val">0</div>
+      <div class="stat-sub">stores signed today</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">This Week</div>
+      <div id="s-week" class="stat-val">0</div>
+      <div class="stat-sub">since Monday</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">Total Signed</div>
+      <div id="s-total" class="stat-val" style="color:var(--pink)">0</div>
+      <div id="s-remaining" class="stat-sub">107 remaining to goal</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">Weeks Left</div>
+      <div id="s-weeks" class="stat-val">0.0</div>
+      <div class="stat-sub">of 10 total weeks</div>
+    </div>
+  </div>
+
+  <!-- Status + Projection -->
+  <div class="grid2">
+    <div id="status-card" class="status-card behind">
+      <div id="status-badge" class="badge behind">&#x2193; Behind</div>
+      <div class="sm-grid">
+        <div><div class="sm-lbl">Current Pace (7d)</div><div id="sm-pace" class="sm-val">0 /wk</div></div>
+        <div><div class="sm-lbl">Required Pace</div><div id="sm-req" class="sm-val">&#x2014;</div></div>
+        <div><div class="sm-lbl">Pace Gap</div><div id="sm-gap" class="sm-val">&#x2014;</div></div>
+        <div><div class="sm-lbl">Projected Total</div><div id="sm-proj" class="sm-val">0</div></div>
+      </div>
+    </div>
+    <div class="proj-card">
+      <div class="section-title" style="margin-bottom:12px">Projection</div>
+      <div id="proj-text" class="proj-sentence">No entries yet. Add your first store signing below.</div>
+      <div class="proj-grid">
+        <div><div class="proj-lbl">Projected Date</div><div id="proj-date" class="proj-val">N/A</div></div>
+        <div><div class="proj-lbl">Weeks to Goal</div><div id="proj-weeks" class="proj-val">N/A</div></div>
+        <div><div class="proj-lbl">Ahead / Behind</div><div id="proj-ab" class="proj-val">N/A</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="grid2">
+    <div class="card">
+      <div class="chart-title">Weekly Signings</div>
+      <div id="chart-bars"><div class="chart-empty">Add entries to see weekly chart</div></div>
+    </div>
+    <div class="card">
+      <div class="chart-title">By Brand</div>
+      <div id="chart-donut"><div class="chart-empty">Add entries to see brand breakdown</div></div>
+    </div>
+  </div>
+
+  <!-- Line chart -->
+  <div class="card gap">
+    <div class="chart-title">Cumulative Progress vs Required Pace</div>
+    <div id="chart-line"><div class="chart-empty">Add entries to see progress line</div></div>
+  </div>
+
+  <!-- Entry form -->
+  <div class="card gap" id="entry-form">
+    <div id="form-title" class="chart-title" style="margin-bottom:16px">+ Add Store Signings</div>
+    <form id="the-form" onsubmit="submitForm(event)">
+      <div class="fgrid">
+        <div>
+          <label class="form-label">Date *</label>
+          <input type="date" id="f-date" class="form-input" required>
+        </div>
+        <div>
+          <label class="form-label">Brand *</label>
+          <select id="f-brand" class="form-select"></select>
+        </div>
+        <div>
+          <label class="form-label">Stores Signed *</label>
+          <input type="number" id="f-stores" class="form-input" min="1" step="1" placeholder="0" required>
+        </div>
+        <div>
+          <label class="form-label">Notes</label>
+          <input type="text" id="f-notes" class="form-input" placeholder="Optional&hellip;">
+        </div>
+      </div>
+      <div class="factions">
+        <button type="submit" id="btn-add" class="btn btn-p">+ Add Entry</button>
+        <button type="button" id="btn-cancel" class="btn btn-s" onclick="cancelEdit()" style="display:none">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="tbl-toolbar">
+      <span id="tbl-count" class="tbl-count">0 entries</span>
+      <button class="btn btn-s btn-sm" onclick="exportCSV()">Export CSV</button>
+      <label class="btn btn-s btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv" style="display:none" onchange="importCSV(event)"></label>
+      <button id="btn-clear" class="btn btn-d btn-sm" onclick="clearAll()">Clear All</button>
+      <span id="clear-confirm" style="display:none;align-items:center;gap:6px">
+        <span style="font-size:12px;color:var(--coral);font-weight:600">Sure?</span>
+        <button class="btn btn-d btn-sm" onclick="confirmClear()">Yes, clear</button>
+        <button class="btn btn-s btn-sm" onclick="cancelClear()">Cancel</button>
+      </span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead id="tbl-head"></thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="height:32px"></div>
+</div>
+
+<script>
+'use strict';
+
+// ── Constants ────────────────────────────────────────────────────────────────
+var BRANDS = ["Krispy Krunchy Chicken","Chester's Chicken","Godfather's Pizza","Champs Chicken","Simple Simon's","Genuine Broasters"];
+var GOAL = 107, WEEKS = 10, Q2_START = '2026-04-01', REQ_PACE = 10.7;
+var KEY = 'lula_store_entries';
+var COLORS = ['#DE4990','#2C023B','#EB92BD','#B799FF','#F59E0B','#10B981'];
+
+// ── State ────────────────────────────────────────────────────────────────────
+var entries = [];
+var editingId = null;
+var sortKey = 'date', sortDir = 'desc';
+
+// ── Data helpers ─────────────────────────────────────────────────────────────
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { return []; }
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(entries)); }
+function uid() { return Math.random().toString(36).substr(2,9); }
+function today() {
+  var d = new Date();
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+function parseD(s) { return new Date(s+'T00:00:00'); }
+function fmtFull(s) { return parseD(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function fmtShort(s) { return parseD(s).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function fmtYMD(d) { return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function monday(d) {
+  var dt = new Date(d), day = dt.getDay();
+  dt.setDate(dt.getDate()-(day===0?6:day-1)); dt.setHours(0,0,0,0); return dt;
+}
+function addDays(d, n) { var r = new Date(d); r.setDate(r.getDate()+n); return r; }
+
+// ── Metrics ──────────────────────────────────────────────────────────────────
+function metrics() {
+  var now = new Date(), q2 = parseD(Q2_START);
+  var daysEl = Math.max(0,(now-q2)/86400000);
+  var weeksEl = daysEl/7, weeksRem = Math.max(0,WEEKS-weeksEl);
+  var cum = entries.reduce(function(s,e){return s+e.stores;},0);
+  var todStr = today();
+  var day0 = entries.filter(function(e){return e.date===todStr;}).reduce(function(s,e){return s+e.stores;},0);
+  var mon = monday(now);
+  var week0 = entries.filter(function(e){return parseD(e.date)>=mon;}).reduce(function(s,e){return s+e.stores;},0);
+  var ago7 = fmtYMD(addDays(now,-7));
+  var pace = entries.filter(function(e){return e.date>=ago7;}).reduce(function(s,e){return s+e.stores;},0);
+  var needed = Math.max(0,GOAL-cum);
+  var reqPace = weeksRem>0 ? needed/weeksRem : Infinity;
+  var projTotal = cum + pace*weeksRem;
+  var wToGoal = pace>0 ? needed/pace : Infinity;
+  var projDate = pace>0 ? addDays(now,wToGoal*7) : null;
+  var wBehind = isFinite(wToGoal) ? wToGoal-weeksRem : Infinity;
+  var pct = Math.min(100,Math.round(cum/GOAL*100));
+  var status = pace>=REQ_PACE ? 'on_track' : pace>=8 ? 'at_risk' : 'behind';
+  return {weeksRem:weeksRem,cum:cum,day0:day0,week0:week0,pace:pace,needed:needed,
+          reqPace:reqPace,projTotal:projTotal,wToGoal:wToGoal,projDate:projDate,
+          wBehind:wBehind,pct:pct,status:status};
+}
+
+// ── Chart data ───────────────────────────────────────────────────────────────
+function weeklyData() {
+  var wks = {};
+  entries.forEach(function(e){
+    var k = fmtYMD(monday(parseD(e.date)));
+    wks[k] = (wks[k]||0)+e.stores;
+  });
+  return Object.keys(wks).sort().map(function(k){return {l:fmtShort(k),v:wks[k]};});
+}
+function brandData() {
+  var t = {};
+  entries.forEach(function(e){t[e.brand]=(t[e.brand]||0)+e.stores;});
+  return Object.keys(t).map(function(k){return {name:k,v:t[k]};}).filter(function(d){return d.v>0;});
+}
+function cumulData() {
+  if(!entries.length) return [];
+  var q2 = parseD(Q2_START);
+  var sorted = entries.slice().sort(function(a,b){return a.date<b.date?-1:1;});
+  var pts = [{wk:0,actual:0,req:0}], run = 0;
+  sorted.forEach(function(e){
+    run+=e.stores;
+    var days = Math.max(0,(parseD(e.date)-q2)/86400000);
+    var wk = parseFloat((days/7).toFixed(2));
+    pts.push({wk:wk,actual:run,req:parseFloat(Math.min(GOAL,REQ_PACE*wk).toFixed(1))});
+  });
+  return pts;
+}
+
+// ── Render all ───────────────────────────────────────────────────────────────
+function renderAll() {
+  var m = metrics();
+  renderProg(m); renderStats(m); renderStatus(m); renderProj(m);
+  renderBars(); renderDonut(); renderLine();
+  renderTable();
+}
+
+function renderProg(m) {
+  el('prog-fill').style.width = m.pct+'%';
+  el('prog-text').textContent = m.cum+' of '+GOAL+' stores signed';
+  el('prog-pct').textContent = m.pct+'%';
+}
+
+function renderStats(m) {
+  el('s-today').textContent = m.day0;
+  el('s-week').textContent = m.week0;
+  el('s-total').textContent = m.cum;
+  el('s-remaining').textContent = m.needed+' remaining to goal';
+  el('s-weeks').textContent = m.weeksRem.toFixed(1);
+}
+
+function renderStatus(m) {
+  var cls = m.status==='on_track'?'on-track':m.status==='at_risk'?'at-risk':'behind';
+  var lbl = m.status==='on_track'?'✓ On Track':m.status==='at_risk'?'⚠ At Risk':'↓ Behind';
+  el('status-card').className = 'status-card '+cls;
+  el('status-badge').className = 'badge '+cls;
+  el('status-badge').textContent = lbl;
+  el('sm-pace').textContent = m.pace+' /wk';
+  el('sm-req').textContent = m.weeksRem>0 ? m.reqPace.toFixed(1)+' /wk' : '—';
+  var gap = m.weeksRem>0&&isFinite(m.reqPace) ? m.pace-m.reqPace : null;
+  var gapEl = el('sm-gap');
+  gapEl.textContent = gap!==null ? (gap>=0?'+':'')+gap.toFixed(1) : '—';
+  gapEl.style.color = gap!==null&&gap>=0 ? '#10B981' : 'var(--coral)';
+  el('sm-proj').textContent = Math.round(m.projTotal);
+}
+
+function renderProj(m) {
+  var txt;
+  if(!entries.length) {
+    txt = 'No entries yet. Add your first store signing below.';
+  } else if(m.status==='on_track') {
+    var ds = m.projDate ? m.projDate.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : '—';
+    txt = 'At your current pace of '+m.pace+' stores/week, you are on track to hit '+GOAL+' stores by '+ds+' — within the '+WEEKS+'-week goal.';
+  } else {
+    var late = isFinite(m.wBehind)&&m.wBehind>0 ? m.wBehind.toFixed(1)+' weeks late' : 'behind schedule';
+    var extra = isFinite(m.reqPace) ? Math.max(0,Math.ceil(m.reqPace-m.pace)) : '—';
+    txt = 'At your current pace of '+m.pace+' stores/week, you will reach '+GOAL+' stores '+late+'. You need '+extra+' more stores this week to get back on track.';
+  }
+  el('proj-text').textContent = txt;
+  el('proj-date').textContent = m.projDate ? m.projDate.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : (entries.length?'—':'N/A');
+  el('proj-weeks').textContent = m.pace>0&&isFinite(m.wToGoal) ? m.wToGoal.toFixed(1)+' wks' : (entries.length?'∞':'N/A');
+  var abEl = el('proj-ab');
+  if(m.pace>0&&isFinite(m.wBehind)) {
+    abEl.textContent = m.wBehind>0 ? m.wBehind.toFixed(1)+' behind' : Math.abs(m.wBehind).toFixed(1)+' ahead';
+    abEl.style.color = m.wBehind<=0 ? '#10B981' : 'var(--coral)';
+  } else { abEl.textContent='N/A'; abEl.style.color='var(--dark)'; }
+}
+
+// ── SVG Bar chart ────────────────────────────────────────────────────────────
+function renderBars() {
+  var c = el('chart-bars'), data = weeklyData();
+  if(!data.length){c.innerHTML='<div class="chart-empty">Add entries to see weekly chart</div>';return;}
+  var W=460,H=160,pT=12,pB=32,pL=32,pR=40;
+  var pW=W-pL-pR, pH=H-pT-pB;
+  var maxV=Math.max.apply(null,data.map(function(d){return d.v;}));
+  maxV = Math.max(maxV, REQ_PACE+2);
+  var n=data.length, bW=Math.min(40,(pW/n)*0.65), gap=(pW-bW*n)/(n+1);
+  var sx=function(i){return pL+gap*(i+1)+bW*i;};
+  var sy=function(v){return pT+pH-(v/maxV)*pH;};
+
+  var bars='', xlbls='', ylbls='';
+  data.forEach(function(d,i){
+    var x=sx(i).toFixed(1), y=sy(d.v).toFixed(1), bH=((d.v/maxV)*pH).toFixed(1);
+    bars+='<rect x="'+x+'" y="'+y+'" width="'+bW.toFixed(1)+'" height="'+bH+'" fill="#DE4990" rx="4"/>';
+    if(d.v>0) bars+='<text x="'+(sx(i)+bW/2).toFixed(1)+'" y="'+(sy(d.v)-4).toFixed(1)+'" text-anchor="middle" font-size="10" fill="var(--dark)" font-weight="600">'+d.v+'</text>';
+    xlbls+='<text x="'+(sx(i)+bW/2).toFixed(1)+'" y="'+(H-6).toFixed(1)+'" text-anchor="middle" font-size="9" fill="var(--muted)">'+d.l+'</text>';
+  });
+  var refY=sy(REQ_PACE).toFixed(1);
+  var refLine='<line x1="'+pL+'" y1="'+refY+'" x2="'+(W-pR)+'" y2="'+refY+'" stroke="#DE4990" stroke-dasharray="5 3" stroke-width="1.5"/>'
+    +'<text x="'+(W-pR+3)+'" y="'+(parseFloat(refY)+3).toFixed(1)+'" font-size="9" fill="#DE4990">10.7</text>';
+  [0,Math.round(maxV/2),Math.round(maxV)].forEach(function(v){
+    var y=sy(v).toFixed(1);
+    ylbls+='<text x="'+(pL-4)+'" y="'+(parseFloat(y)+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--muted)">'+v+'</text>';
+  });
+  c.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+ylbls+bars+refLine+xlbls+'</svg>';
+}
+
+// ── SVG Donut chart ──────────────────────────────────────────────────────────
+function renderDonut() {
+  var c = el('chart-donut'), data = brandData();
+  if(!data.length){c.innerHTML='<div class="chart-empty">Add entries to see brand breakdown</div>';return;}
+  var total=data.reduce(function(s,d){return s+d.v;},0);
+  var R=44, cx=60, cy=60, circ=2*Math.PI*R;
+  var segs='', offset=-0.25;
+  data.forEach(function(d,i){
+    var frac=d.v/total, dash=(frac*circ).toFixed(2), gap=((1-frac)*circ).toFixed(2);
+    var rot=(offset*360).toFixed(1);
+    segs+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+COLORS[i%COLORS.length]+'" stroke-width="14" stroke-dasharray="'+dash+' '+gap+'" transform="rotate('+rot+' '+cx+' '+cy+')"/>';
+    offset+=frac;
+  });
+  var legend=data.map(function(d,i){
+    return '<div class="legend-item"><div class="legend-dot" style="background:'+COLORS[i%COLORS.length]+'"></div><span>'+d.name+' ('+d.v+')</span></div>';
+  }).join('');
+  c.innerHTML='<svg viewBox="0 0 120 120" style="width:120px;height:120px;display:block;margin:0 auto">'
+    +segs
+    +'<text x="'+cx+'" y="'+(cy+5)+'" text-anchor="middle" font-family="Gabarito,sans-serif" font-size="16" font-weight="800" fill="var(--dark)">'+total+'</text>'
+    +'<text x="'+cx+'" y="'+(cy+17)+'" text-anchor="middle" font-size="9" fill="var(--muted)">stores</text>'
+    +'</svg><div class="legend">'+legend+'</div>';
+}
+
+// ── SVG Line chart ───────────────────────────────────────────────────────────
+function renderLine() {
+  var c = el('chart-line'), data = cumulData();
+  if(data.length<=1){c.innerHTML='<div class="chart-empty">Add entries to see progress line</div>';return;}
+  var W=700,H=180,pT=10,pB=30,pL=36,pR=44;
+  var pW=W-pL-pR, pH=H-pT-pB;
+  var sx=function(wk){return pL+(wk/WEEKS)*pW;};
+  var sy=function(v){return pT+pH-(v/GOAL)*pH;};
+
+  // grid
+  var grid='';
+  [25,50,75,100].forEach(function(v){
+    var y=sy(v).toFixed(1);
+    grid+='<line x1="'+pL+'" y1="'+y+'" x2="'+(W-pR)+'" y2="'+y+'" stroke="#EDE8F5" stroke-width="0.5"/>';
+  });
+  // x ticks
+  var xt='';
+  [0,2,4,6,8,10].forEach(function(w){
+    var x=sx(w).toFixed(1);
+    xt+='<line x1="'+x+'" y1="'+(H-pB)+'" x2="'+x+'" y2="'+(H-pB+4)+'" stroke="#EDE8F5"/>'
+      +'<text x="'+x+'" y="'+(H-pB+14)+'" text-anchor="middle" font-size="9" fill="var(--muted)">W'+w+'</text>';
+  });
+  // y ticks
+  var yt='';
+  [0,25,50,75,107].forEach(function(v){
+    var y=sy(v).toFixed(1);
+    yt+='<text x="'+(pL-5)+'" y="'+(parseFloat(y)+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--muted)">'+v+'</text>';
+  });
+  // goal line
+  var gy=sy(GOAL).toFixed(1);
+  var goalLine='<line x1="'+pL+'" y1="'+gy+'" x2="'+(W-pR)+'" y2="'+gy+'" stroke="#10B981" stroke-dasharray="5 3" stroke-width="1"/>'
+    +'<text x="'+(W-pR+3)+'" y="'+(parseFloat(gy)+3).toFixed(1)+'" font-size="9" fill="#10B981">'+GOAL+'</text>';
+  // required pace line (straight 0→GOAL over 10 weeks)
+  var reqLine='<line x1="'+sx(0).toFixed(1)+'" y1="'+sy(0).toFixed(1)+'" x2="'+sx(10).toFixed(1)+'" y2="'+sy(GOAL).toFixed(1)+'" stroke="#AEAEAE" stroke-dasharray="6 3" stroke-width="1.5"/>';
+  // actual polyline
+  var pts=data.map(function(d){return sx(d.wk).toFixed(1)+','+sy(d.actual).toFixed(1);}).join(' ');
+  var actualLine='<polyline points="'+pts+'" fill="none" stroke="#DE4990" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  // dots on actual
+  var dots=data.slice(1).map(function(d){return '<circle cx="'+sx(d.wk).toFixed(1)+'" cy="'+sy(d.actual).toFixed(1)+'" r="3" fill="#DE4990"/>';}).join('');
+
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+grid+xt+yt+goalLine+reqLine+actualLine+dots+'</svg>';
+  var lgnd='<div class="chart-legend">'
+    +'<span><span style="display:inline-block;width:18px;height:3px;background:#DE4990;vertical-align:middle;border-radius:2px;margin-right:4px"></span>Actual</span>'
+    +'<span><span style="display:inline-block;width:18px;border-top:2px dashed #AEAEAE;vertical-align:middle;margin-right:4px"></span>Required Pace</span>'
+    +'<span><span style="display:inline-block;width:18px;border-top:2px dashed #10B981;vertical-align:middle;margin-right:4px"></span>Goal (107)</span>'
+    +'</div>';
+  c.innerHTML=svg+lgnd;
+}
+
+// ── Table ────────────────────────────────────────────────────────────────────
+function sorted() {
+  return entries.slice().sort(function(a,b){
+    var av=sortKey==='stores'?Number(a[sortKey]):(a[sortKey]||'');
+    var bv=sortKey==='stores'?Number(b[sortKey]):(b[sortKey]||'');
+    if(av<bv) return sortDir==='asc'?-1:1;
+    if(av>bv) return sortDir==='asc'?1:-1;
+    return 0;
+  });
+}
+function renderTable() {
+  var m=metrics();
+  el('tbl-count').textContent=entries.length+' '+(entries.length===1?'entry':'entries')+' · '+m.cum+' total stores';
+  var cols=[['date','Date'],['brand','Brand'],['stores','Stores'],['notes','Notes']];
+  var thead='<tr>'+cols.map(function(c){
+    var arr=sortKey===c[0]?(sortDir==='asc'?' ↑':' ↓'):'';
+    return '<th onclick="sortBy(\''+c[0]+'\')">'+c[1]+arr+'</th>';
+  }).join('')+'<th>Actions</th></tr>';
+  var rows=sorted();
+  var tbody=rows.length===0
+    ? '<tr><td colspan="5" class="tbl-empty">No entries yet. Add your first store signing above.</td></tr>'
+    : rows.map(function(e){
+        return '<tr>'
+          +'<td style="white-space:nowrap">'+fmtFull(e.date)+'</td>'
+          +'<td><span class="pill">'+e.brand+'</span></td>'
+          +'<td style="font-weight:700;color:var(--dark);font-size:15px">'+e.stores+'</td>'
+          +'<td style="color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(e.notes||'&mdash;')+'</td>'
+          +'<td><div style="display:flex;gap:6px">'
+            +'<button class="btn btn-s btn-sm" onclick="editEntry(\''+e.id+'\')">Edit</button>'
+            +'<button class="btn btn-d btn-sm" onclick="delEntry(\''+e.id+'\')">Delete</button>'
+          +'</div></td>'
+          +'</tr>';
+      }).join('');
+  el('tbl-head').innerHTML=thead;
+  el('tbl-body').innerHTML=tbody;
+}
+
+// ── Form handlers ────────────────────────────────────────────────────────────
+function submitForm(e) {
+  e.preventDefault();
+  var date=el('f-date').value, brand=el('f-brand').value;
+  var stores=parseInt(el('f-stores').value,10), notes=el('f-notes').value;
+  if(!date||!brand||isNaN(stores)||stores<1){showErr('Fill in all required fields (date, brand, stores ≥ 1).');return;}
+  hideErr();
+  if(editingId) {
+    var idx=entries.findIndex(function(e){return e.id===editingId;});
+    if(idx>=0) entries[idx]={id:editingId,date:date,brand:brand,stores:stores,notes:notes};
+    editingId=null;
+    el('form-title').textContent='+ Add Store Signings';
+    el('btn-add').textContent='+ Add Entry';
+    el('btn-cancel').style.display='none';
+  } else {
+    entries.push({id:uid(),date:date,brand:brand,stores:stores,notes:notes});
+  }
+  resetForm(); save(); renderAll();
+}
+function resetForm() {
+  el('f-date').value=today();
+  el('f-brand').value=BRANDS[0];
+  el('f-stores').value='';
+  el('f-notes').value='';
+}
+function editEntry(id) {
+  var e=entries.find(function(e){return e.id===id;});
+  if(!e) return;
+  editingId=id;
+  el('f-date').value=e.date; el('f-brand').value=e.brand;
+  el('f-stores').value=e.stores; el('f-notes').value=e.notes||'';
+  el('form-title').textContent='✏ Edit Entry';
+  el('btn-add').textContent='Save Changes';
+  el('btn-cancel').style.display='inline-flex';
+  el('entry-form').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelEdit() {
+  editingId=null; resetForm();
+  el('form-title').textContent='+ Add Store Signings';
+  el('btn-add').textContent='+ Add Entry';
+  el('btn-cancel').style.display='none';
+}
+function delEntry(id) {
+  entries=entries.filter(function(e){return e.id!==id;});
+  if(editingId===id) cancelEdit();
+  save(); renderAll();
+}
+function sortBy(k) {
+  if(sortKey===k) sortDir=sortDir==='asc'?'desc':'asc';
+  else{sortKey=k;sortDir='asc';}
+  renderTable();
+}
+
+// ── Clear all ────────────────────────────────────────────────────────────────
+function clearAll() {
+  el('btn-clear').style.display='none';
+  el('clear-confirm').style.display='flex';
+}
+function confirmClear() {
+  entries=[]; editingId=null; cancelEdit(); cancelClear(); save(); renderAll();
+}
+function cancelClear() {
+  el('btn-clear').style.display='inline-flex';
+  el('clear-confirm').style.display='none';
+}
+
+// ── Export / Import ──────────────────────────────────────────────────────────
+function exportCSV() {
+  var rows=[['Date','Brand','Stores','Notes']];
+  sorted().forEach(function(e){rows.push([e.date,e.brand,e.stores,e.notes||'']);});
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='store-signings-'+today()+'.csv'; a.click();
+}
+function importCSV(e) {
+  var file=e.target.files[0]; if(!file) return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    try{
+      var lines=ev.target.result.split('\n').filter(function(l){return l.trim();});
+      var imp=lines.slice(1).map(function(line){
+        var cols=line.split(',').map(function(c){return c.trim().replace(/^"|"$/g,'').replace(/""/g,'"');});
+        var s=parseInt(cols[2],10);
+        if(!cols[0]||!cols[1]||isNaN(s)) return null;
+        return {id:uid(),date:cols[0],brand:cols[1],stores:s,notes:cols[3]||''};
+      }).filter(Boolean);
+      entries=entries.concat(imp); save(); renderAll();
+    }catch(ex){showErr('Could not parse CSV file.');}
+  };
+  r.readAsText(file); e.target.value='';
+}
+
+// ── Util ─────────────────────────────────────────────────────────────────────
+function el(id){return document.getElementById(id);}
+function showErr(msg){el('err-msg').textContent=msg;el('err-banner').style.display='flex';}
+function hideErr(){el('err-banner').style.display='none';}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+(function(){
+  // Populate brand select
+  var sel=el('f-brand');
+  BRANDS.forEach(function(b){var o=document.createElement('option');o.value=b;o.textContent=b;sel.appendChild(o);});
+  // Set today's date as default
+  el('f-date').value=today();
+  // Header date
+  el('hdr-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+  // Load data and render
+  entries=load();
+  renderAll();
+})();
+</script>
+</body>
+</html>

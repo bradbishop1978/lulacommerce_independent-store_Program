@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Call Activity Tracker — Lula Commerce</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --dark:#2C023B;--pink:#DE4990;--pink-light:#EB92BD;
+      --pink-pale:#FFF1EE;--coral:#ED8585;--gray:#AEAEAE;
+      --bg:#F8F5FF;--border:#EDE8F5;--text:#1A1A2E;--muted:#6B6B8A;
+      --green:#10B981;--amber:#F59E0B;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    /* Header */
+    .header{background:var(--dark);padding:14px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+    .hlogo{display:flex;align-items:center;gap:12px}
+    .htitle{font-family:'Gabarito',sans-serif;font-size:19px;font-weight:800;color:#fff}
+    .hsub{font-size:11px;color:var(--pink-light);margin-top:2px}
+    .hright{margin-left:auto;display:flex;align-items:center;gap:10px}
+    .fetch-info{font-size:11px;color:var(--gray);text-align:right}
+    .icon-btn{background:rgba(255,255,255,.12);border:none;color:#fff;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s}
+    .icon-btn:hover{background:rgba(255,255,255,.22)}
+    .refresh-btn{padding:6px 14px;border-radius:8px;background:var(--pink);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+    .refresh-btn:hover{background:#C73F7E}
+    .refresh-btn:disabled{opacity:.5;cursor:not-allowed}
+
+    /* Main */
+    .main{max-width:1280px;margin:0 auto;padding:20px}
+
+    /* Alert */
+    .alert{background:#FEE2E2;color:#991B1B;padding:11px 16px;border-radius:8px;margin-bottom:16px;display:none;align-items:center;gap:8px;font-size:13px}
+    .alert button{margin-left:auto;background:none;border:none;cursor:pointer;color:#991B1B;font-size:16px}
+
+    /* Spinner */
+    .spinner-wrap{display:none;align-items:center;justify-content:center;padding:60px;flex-direction:column;gap:16px}
+    .spinner{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--pink);border-radius:50%;animation:spin 0.8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spinner-txt{font-size:13px;color:var(--muted)}
+
+    /* Cards */
+    .card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:18px}
+    .gap{margin-bottom:16px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+
+    /* Filters */
+    .filter-bar{background:#fff;border-radius:12px;border:1px solid var(--border);padding:16px;margin-bottom:16px}
+    .filter-bar-inner{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+    .filter-group{display:flex;flex-direction:column;gap:6px}
+    .filter-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+    .filter-chips{display:flex;flex-wrap:wrap;gap:4px}
+    .chip{padding:4px 10px;border-radius:16px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:.15s}
+    .chip:hover{border-color:var(--pink-light);color:var(--pink)}
+    .chip.active{background:var(--pink);border-color:var(--pink);color:#fff}
+    .filter-date-wrap{display:flex;gap:6px;align-items:center}
+    .filter-input{padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:12px;color:var(--text);outline:none}
+    .filter-input:focus{border-color:var(--pink)}
+    .filter-sep{font-size:12px;color:var(--muted)}
+    .btn-clear-filters{padding:5px 12px;border-radius:8px;background:var(--pink-pale);color:var(--dark);border:1.5px solid var(--border);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;align-self:flex-end}
+    .btn-clear-filters:hover{background:#F0E8FF}
+    .dd-wrap{position:relative}
+    .dd-btn{padding:6px 12px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;min-width:150px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:.15s}
+    .dd-btn:hover,.dd-btn.active{border-color:var(--pink)}
+    .dd-btn.active{background:var(--pink-pale);color:var(--dark)}
+    .dd-arrow{font-size:10px;opacity:.5}
+    .dd-menu{position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1.5px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:50;min-width:200px;padding:6px;max-height:240px;overflow-y:auto;display:none}
+    .dd-menu.open{display:block}
+    .dd-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;font-size:13px;cursor:pointer;user-select:none;white-space:nowrap}
+    .dd-item:hover{background:var(--pink-pale)}
+    .dd-item input{accent-color:var(--pink);cursor:pointer;flex-shrink:0}
+    .dd-divider{height:1px;background:var(--border);margin:4px 0}
+
+    /* KPI sections */
+    .kpi-section-label{font-family:'Gabarito',sans-serif;font-size:13px;font-weight:700;color:var(--dark);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+    .kpi-section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+    .metric-card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:16px}
+    .metric-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:6px}
+    .metric-val{font-family:'Gabarito',sans-serif;font-size:28px;font-weight:900;color:var(--dark);line-height:1}
+    .metric-sub{font-size:11px;color:var(--muted);margin-top:4px}
+    .metric-pct{font-family:'Gabarito',sans-serif;font-size:28px;font-weight:900;color:var(--dark);line-height:1}
+
+    /* Interest mini-bar */
+    .interest-bar{display:flex;border-radius:6px;overflow:hidden;height:12px;margin-top:8px}
+    .interest-seg{height:100%;transition:width .4s}
+    .interest-legend{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+    .interest-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
+    .interest-dot{width:7px;height:7px;border-radius:50%}
+
+    /* Result pills */
+    .result-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .result-pill{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:var(--pink-pale);color:var(--dark);display:flex;align-items:center;gap:5px}
+    .result-pill-count{background:var(--pink);color:#fff;border-radius:8px;padding:1px 5px;font-size:10px}
+
+    /* Funnel */
+    .funnel{padding:8px 0}
+    .funnel-stage{margin-bottom:8px;display:flex;align-items:center;gap:12px}
+    .funnel-bar-wrap{flex:1}
+    .funnel-bar{height:40px;border-radius:6px;display:flex;align-items:center;padding:0 14px;color:#fff;transition:width .4s;min-width:80px;overflow:hidden}
+    .funnel-bar-label{font-size:12px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .funnel-bar-count{font-family:'Gabarito',sans-serif;font-size:16px;font-weight:800;white-space:nowrap}
+    .funnel-conv{font-size:11px;color:var(--muted);white-space:nowrap;width:64px;text-align:right}
+    .funnel-arrow{color:var(--border);font-size:16px;margin-bottom:8px;padding-left:8px}
+
+    /* Section title */
+    .section-title{font-family:'Gabarito',sans-serif;font-size:14px;font-weight:700;color:var(--dark);margin-bottom:14px}
+    .chart-empty{display:flex;align-items:center;justify-content:center;height:160px;color:var(--gray);font-size:13px}
+    .chart-legend{display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+    .chart-legend-item{display:flex;align-items:center;gap:5px}
+    .chart-legend-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+
+    /* Table */
+    .tbl-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+    .tbl-count{font-size:13px;color:var(--muted);flex:1}
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{text-align:left;padding:8px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:2px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+    th:hover{color:var(--pink)}
+    td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+    tr:last-child td{border-bottom:none}
+    tr.data-row:hover td{background:var(--pink-pale);cursor:pointer}
+    .tbl-empty{text-align:center;padding:40px;color:var(--gray);font-size:13px;white-space:normal}
+    .pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:var(--pink-pale);color:var(--dark)}
+    .status-pill{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+    .pagination{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;font-size:13px;color:var(--muted)}
+    .page-btn{padding:5px 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;color:var(--dark)}
+    .page-btn:hover:not(:disabled){border-color:var(--pink);color:var(--pink)}
+    .page-btn:disabled{opacity:.4;cursor:not-allowed}
+
+    /* Btn */
+    .btn{padding:8px 16px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+    .btn-p{background:var(--pink);color:#fff}.btn-p:hover{background:#C73F7E}
+    .btn-s{background:var(--pink-pale);color:var(--dark);border:1.5px solid var(--border)}.btn-s:hover{background:#F0E8FF}
+    .btn-sm{padding:5px 10px;font-size:12px}
+
+
+    /* Detail drawer */
+    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150;display:none}
+    .drawer{position:fixed;top:0;right:0;bottom:0;width:440px;max-width:100vw;background:#fff;z-index:160;box-shadow:-8px 0 40px rgba(0,0,0,.15);overflow-y:auto;transform:translateX(100%);transition:transform .25s ease}
+    .drawer.open{transform:translateX(0)}
+    .drawer-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1}
+    .drawer-title{font-family:'Gabarito',sans-serif;font-size:17px;font-weight:800;color:var(--dark)}
+    .drawer-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--muted);line-height:1}
+    .drawer-close:hover{color:var(--dark)}
+    .drawer-body{padding:20px}
+    .drawer-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:18px 0 8px}
+    .drawer-section-title:first-child{margin-top:0}
+    .drawer-field{display:flex;flex-direction:column;gap:3px;margin-bottom:12px}
+    .drawer-field-label{font-size:11px;color:var(--muted)}
+    .drawer-field-value{font-size:13px;color:var(--text);font-weight:500;word-break:break-word}
+    .drawer-field-value.summary{font-size:13px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word;background:var(--bg);padding:10px 12px;border-radius:8px}
+
+    @media(max-width:768px){
+      .grid4{grid-template-columns:repeat(2,1fr)}
+      .grid3{grid-template-columns:1fr}
+      .grid2{grid-template-columns:1fr}
+      .main{padding:12px}
+      .header{padding:10px 14px}
+    }
+    @media(max-width:480px){
+      .grid4{grid-template-columns:1fr 1fr}
+      .drawer{width:100vw}
+    }
+  </style>
+</head>
+<body>
+
+<!-- Settings Modal -->
+
+<!-- Header -->
+<div class="header">
+  <div class="hlogo">
+    <svg width="36" height="36" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="db-g0" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#DE4990"/><stop offset="100%" stop-color="#2C023B"/></linearGradient>
+        <linearGradient id="db-g1" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#EB92BD"/><stop offset="100%" stop-color="#DE4990"/></linearGradient>
+        <linearGradient id="db-g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#DE4990"/><stop offset="100%" stop-color="#2C023B"/></linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="22" fill="url(#db-g0)"/>
+      <rect x="24" y="38" width="72" height="8" rx="4" fill="url(#db-g1)"/>
+      <rect x="24" y="56" width="52" height="8" rx="4" fill="white" fill-opacity=".7"/>
+      <rect x="24" y="74" width="64" height="8" rx="4" fill="url(#db-g2)"/>
+    </svg>
+    <div>
+      <div class="htitle">Call Activity Tracker</div>
+      <div class="hsub">Lula Commerce &mdash; SimOne Outreach Intelligence</div>
+    </div>
+  </div>
+  <div class="hright">
+    <div id="fetch-info" class="fetch-info" style="display:none">
+      <div id="fetch-count"></div>
+      <div id="fetch-time" style="margin-top:2px"></div>
+    </div>
+    <button id="refresh-btn" class="refresh-btn" onclick="fetchData()" style="display:none">&#x21BB; Refresh</button>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Error banner -->
+  <div id="err-banner" class="alert">
+    <span id="err-msg"></span>
+    <button onclick="hideErr()">&#x2715;</button>
+  </div>
+
+  <!-- Spinner -->
+  <div id="spinner-wrap" class="spinner-wrap">
+    <div class="spinner"></div>
+    <div class="spinner-txt">Loading call records from Airtable&hellip;</div>
+  </div>
+
+  <!-- Content (hidden until loaded) -->
+  <div id="content" style="display:none">
+
+    <!-- Filter bar -->
+    <div class="filter-bar gap">
+      <div class="filter-bar-inner">
+        <div class="filter-group">
+          <div class="filter-label">Brand</div>
+          <div class="dd-wrap" id="brand-dd-wrap">
+            <button class="dd-btn" id="brand-dd-btn" onclick="toggleBrandDD()">
+              <span id="brand-dd-label">All Brands</span>
+              <span class="dd-arrow">&#9660;</span>
+            </button>
+            <div class="dd-menu" id="brand-dd-menu">
+              <label class="dd-item" style="font-weight:600">
+                <input type="checkbox" id="brand-all-cb" checked onchange="brandSelectAll(this)">
+                Select All
+              </label>
+              <div class="dd-divider"></div>
+              <div id="brand-dd-items"></div>
+            </div>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Date Range</div>
+          <div class="filter-date-wrap">
+            <input type="date" id="f-from" class="filter-input" onchange="applyFilters()">
+            <span class="filter-sep">&rarr;</span>
+            <input type="date" id="f-to" class="filter-input" onchange="applyFilters()">
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Call Status</div>
+          <div id="filter-statuses" class="filter-chips"></div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">End Result</div>
+          <div id="filter-results" class="filter-chips"></div>
+        </div>
+        <button class="btn-clear-filters" onclick="clearFilters()">Clear Filters</button>
+      </div>
+    </div>
+
+    <!-- KPI Row 1: Volume -->
+    <div class="kpi-section-label">Volume</div>
+    <div class="grid4 gap">
+      <div class="metric-card"><div class="metric-label">Total Calls</div><div id="k-total" class="metric-val">0</div></div>
+      <div class="metric-card"><div class="metric-label">Today</div><div id="k-today" class="metric-val">0</div></div>
+      <div class="metric-card"><div class="metric-label">This Week</div><div id="k-week" class="metric-val">0</div></div>
+      <div class="metric-card"><div class="metric-label">Avg Duration</div><div id="k-avgdur" class="metric-val">0:00</div><div class="metric-sub">per call</div></div>
+    </div>
+
+    <!-- KPI Row 2: Reach -->
+    <div class="kpi-section-label">Reach</div>
+    <div class="grid3 gap">
+      <div class="metric-card"><div class="metric-label">Reached DM</div><div id="k-dtm" class="metric-val">0%</div><div id="k-dtm-sub" class="metric-sub"></div></div>
+      <div class="metric-card"><div class="metric-label">Mobile Captured</div><div id="k-mob" class="metric-val">0%</div><div id="k-mob-sub" class="metric-sub"></div></div>
+      <div class="metric-card"><div class="metric-label">Email Captured</div><div id="k-email" class="metric-val">0%</div><div id="k-email-sub" class="metric-sub"></div></div>
+    </div>
+
+    <!-- KPI Row 3: Outcomes -->
+    <div class="kpi-section-label">Outcomes</div>
+    <div class="grid3 gap">
+      <div class="metric-card"><div class="metric-label">Follow-Up Scheduled</div><div id="k-fu" class="metric-val">0%</div><div id="k-fu-sub" class="metric-sub"></div></div>
+      <div class="metric-card"><div class="metric-label">SMS Permission</div><div id="k-sms" class="metric-val">0%</div><div id="k-sms-sub" class="metric-sub">of answered</div></div>
+      <div class="metric-card"><div class="metric-label">Email Permission</div><div id="k-eperm" class="metric-val">0%</div><div id="k-eperm-sub" class="metric-sub">of answered</div></div>
+    </div>
+
+    <!-- KPI Row 4: Interest & Conversion -->
+    <div class="kpi-section-label">Interest &amp; Conversion</div>
+    <div class="grid3 gap">
+      <div class="metric-card">
+        <div class="metric-label">Email Interest Level</div>
+        <div id="k-interest-bar" class="interest-bar" style="margin-top:12px"></div>
+        <div id="k-interest-legend" class="interest-legend"></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Callback Scheduled</div>
+        <div id="k-callback" class="metric-val" style="margin-top:4px">0</div>
+        <div class="metric-sub">records with callback time set</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Top End Results</div>
+        <div id="k-results" class="result-pills" style="margin-top:8px"></div>
+      </div>
+    </div>
+
+    <!-- Conversion Funnel + Daily Volume -->
+    <div class="grid2">
+      <div class="card gap">
+        <div class="section-title">Conversion Funnel</div>
+        <div id="funnel"></div>
+      </div>
+      <div class="card gap">
+        <div class="section-title">Daily Call Volume (14 days)</div>
+        <div id="chart-daily"><div class="chart-empty">No data</div></div>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="grid2">
+      <div class="card gap">
+        <div class="section-title">End Result Distribution</div>
+        <div id="chart-results"><div class="chart-empty">No data</div></div>
+      </div>
+      <div class="card gap">
+        <div class="section-title">Primary Objections</div>
+        <div id="chart-objections"><div class="chart-empty">No data</div></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card gap">
+        <div class="section-title">Brand Performance</div>
+        <div id="chart-brands"><div class="chart-empty">No data</div></div>
+      </div>
+      <div class="card gap">
+        <div class="section-title">Avg Call Duration by Outcome</div>
+        <div id="chart-duration"><div class="chart-empty">No data</div></div>
+      </div>
+    </div>
+
+    <!-- Call Log Table -->
+    <div class="card">
+      <div class="tbl-toolbar">
+        <span id="tbl-count" class="tbl-count">0 records</span>
+        <button class="btn btn-s btn-sm" onclick="exportCSV()">Export CSV</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead id="tbl-head"></thead>
+          <tbody id="tbl-body"></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <button id="pg-prev" class="page-btn" onclick="changePage(-1)" disabled>&#8592; Prev</button>
+        <span id="pg-info">Page 1 of 1</span>
+        <button id="pg-next" class="page-btn" onclick="changePage(1)" disabled>Next &#8594;</button>
+      </div>
+    </div>
+
+    <div style="height:32px"></div>
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Detail Drawer -->
+<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer" class="drawer">
+  <div class="drawer-header">
+    <div id="drawer-title" class="drawer-title">Call Detail</div>
+    <button class="drawer-close" onclick="closeDrawer()">&#x2715;</button>
+  </div>
+  <div id="drawer-body" class="drawer-body"></div>
+</div>
+
+<script>
+'use strict';
+
+// ── Constants ────────────────────────────────────────────────────────────────
+var API_KEY = 'patJVlLjFCAAU4e1y.0a4d1aca78a0d3fef1aae425d360c20259d8199b4e08c6d92e81977e980bfb5a'; // ← paste your Airtable Personal Access Token here
+var BASE_ID = 'appDdxBcnpweVkiKM';
+var TABLE_NAME = 'Call Logs';
+var KEY_CACHE = 'lula_call_cache';
+var COLORS = ['#DE4990','#2C023B','#EB92BD','#B799FF','#F59E0B','#10B981','#EC4899','#8B5CF6'];
+var PAGE_SIZE = 25;
+
+// ── State ────────────────────────────────────────────────────────────────────
+var allRecords = [];
+var filteredRecs = [];
+var fetchedAt = null;
+var activeFilters = {brands:new Set(), statuses:new Set(), results:new Set(), dateFrom:'', dateTo:''};
+var page = 1;
+var sortCol = 'createdTime', sortAsc = false;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function el(id){return document.getElementById(id);}
+function showErr(msg){el('err-msg').textContent=msg;el('err-banner').style.display='flex';}
+function hideErr(){el('err-banner').style.display='none';}
+function pad(n){return String(n).padStart(2,'0');}
+function today(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function fmtYMD(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function fmtShort(str){return new Date(str).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function fmtDateTime(str){return new Date(str).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}
+function parseDuration(val){
+  if(!val) return 0;
+  if(typeof val==='number') return Math.round(val);
+  if(typeof val==='string'&&val.includes(':')){var p=val.split(':');return parseInt(p[0])*60+parseInt(p[1]||0);}
+  return parseInt(val)||0;
+}
+function fmtDuration(secs){if(!secs) return '0:00';var m=Math.floor(secs/60),s=secs%60;return m+':'+(s<10?'0':'')+s;}
+function timeAgo(iso){
+  if(!iso) return 'never';
+  var diff=(Date.now()-new Date(iso).getTime())/1000;
+  if(diff<60) return 'just now';
+  if(diff<3600) return Math.round(diff/60)+'m ago';
+  if(diff<86400) return Math.round(diff/3600)+'h ago';
+  return Math.round(diff/86400)+'d ago';
+}
+function pct(n,d){return d===0?0:Math.round(n/d*100);}
+function fld(rec,name){return rec.fields[name]||null;}
+function fldStr(rec,name){return rec.fields[name]||'';}
+function isYes(val){return val===true||val==='Yes'||val==='yes';}
+function getMondayOf(d){var dt=new Date(d),day=dt.getDay();dt.setDate(dt.getDate()-(day===0?6:day-1));dt.setHours(0,0,0,0);return dt;}
+function escAttr(s){return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+// ── localStorage ─────────────────────────────────────────────────────────────
+function loadStorage(){
+  try{var c=JSON.parse(localStorage.getItem(KEY_CACHE)||'null');if(c&&c.records){allRecords=c.records;fetchedAt=c.fetchedAt;}}catch(e){}
+}
+function saveCache(){localStorage.setItem(KEY_CACHE,JSON.stringify({records:allRecords,fetchedAt:fetchedAt}));}
+
+// ── Airtable fetch ───────────────────────────────────────────────────────────
+async function fetchAllRecords(key,baseId,tableName){
+  var all=[],offset=null;
+  do{
+    var url='https://api.airtable.com/v0/'+baseId+'/'+encodeURIComponent(tableName)+'?pageSize=100'+(offset?'&offset='+offset:'');
+    var res=await fetch(url,{headers:{Authorization:'Bearer '+key}});
+    if(!res.ok){
+      var err;try{err=await res.json();}catch(e){err={};}
+      throw new Error((err.error&&err.error.message)||res.statusText||('HTTP '+res.status));
+    }
+    var data=await res.json();
+    all=all.concat(data.records);
+    offset=data.offset||null;
+  }while(offset);
+  return all;
+}
+
+async function fetchData(){
+  hideErr();
+  el('spinner-wrap').style.display='flex';
+  el('content').style.display='none';
+  el('refresh-btn').disabled=true;
+  try{
+    allRecords=await fetchAllRecords(API_KEY,BASE_ID,TABLE_NAME);
+    fetchedAt=new Date().toISOString();
+    saveCache();
+    updateFetchInfo();
+    buildFilters();
+    setDefaultDateFilter();
+    applyFilters();
+    el('content').style.display='block';
+    el('refresh-btn').style.display='inline-flex';
+    el('fetch-info').style.display='block';
+  }catch(e){
+    showErr('Airtable error: '+e.message);
+    if(allRecords.length){el('content').style.display='block';}
+  }finally{
+    el('spinner-wrap').style.display='none';
+    el('refresh-btn').disabled=false;
+  }
+}
+
+function updateFetchInfo(){
+  el('fetch-count').textContent=allRecords.length+' records loaded';
+  el('fetch-time').textContent='Last fetched: '+timeAgo(fetchedAt);
+}
+
+
+// ── Filters ──────────────────────────────────────────────────────────────────
+function unique(arr){return [...new Set(arr.filter(Boolean))].sort();}
+
+function buildFilters(){
+  var brands=unique(allRecords.map(function(r){return fldStr(r,'Brand');}));
+  var statuses=unique(allRecords.map(function(r){return fldStr(r,'Call Status');}));
+  var results=unique(allRecords.map(function(r){return fldStr(r,'End Result');}));
+  renderBrandDropdown(brands);
+  renderChips('filter-statuses',statuses,'statuses');
+  renderChips('filter-results',results,'results');
+}
+
+// Brand dropdown ─────────────────────────────────────────────────────────────
+var brandOptions=[];
+
+function renderBrandDropdown(brands){
+  brandOptions=brands;
+  var c=el('brand-dd-items');
+  c.innerHTML=brands.map(function(b){
+    var checked=activeFilters.brands.size===0||activeFilters.brands.has(b);
+    return '<label class="dd-item">'
+      +'<input type="checkbox" value="'+escAttr(b)+'" '+(checked?'checked':'')+' onchange="brandItemChange()">'
+      +b+'</label>';
+  }).join('');
+  updateBrandBtn();
+}
+
+function toggleBrandDD(){
+  var menu=el('brand-dd-menu');
+  var opening=!menu.classList.contains('open');
+  menu.classList.toggle('open');
+  if(opening){
+    setTimeout(function(){document.addEventListener('click',outsideBrandDD,{once:true});},0);
+  }
+}
+function outsideBrandDD(e){
+  if(!el('brand-dd-wrap').contains(e.target)){
+    el('brand-dd-menu').classList.remove('open');
+  } else {
+    document.addEventListener('click',outsideBrandDD,{once:true});
+  }
+}
+
+function brandSelectAll(cb){
+  var items=el('brand-dd-items').querySelectorAll('input[type=checkbox]');
+  items.forEach(function(i){i.checked=cb.checked;});
+  activeFilters.brands=new Set();
+  if(!cb.checked){
+    // none selected = treat as all (same behavior — no brand filter)
+  }
+  updateBrandBtn();
+  page=1; applyFilters();
+}
+
+function brandItemChange(){
+  var items=el('brand-dd-items').querySelectorAll('input[type=checkbox]');
+  var checked=[];
+  items.forEach(function(i){if(i.checked) checked.push(i.value);});
+  var allCb=el('brand-all-cb');
+  if(checked.length===brandOptions.length||checked.length===0){
+    activeFilters.brands=new Set();
+    allCb.checked=true; allCb.indeterminate=false;
+  } else {
+    activeFilters.brands=new Set(checked);
+    allCb.checked=false;
+    allCb.indeterminate=true;
+  }
+  updateBrandBtn();
+  page=1; applyFilters();
+}
+
+function updateBrandBtn(){
+  var n=activeFilters.brands.size;
+  var label=n===0?'All Brands':n+' brand'+(n===1?'':'s')+' selected';
+  el('brand-dd-label').textContent=label;
+  el('brand-dd-btn').className='dd-btn'+(n>0?' active':'');
+}
+
+function renderChips(containerId,values,filterKey){
+  var c=el(containerId);
+  c.innerHTML=values.map(function(v){
+    return '<button class="chip'+(activeFilters[filterKey].has(v)?' active':'')+'" onclick="toggleFilter(\''+filterKey+'\',\''+escAttr(v)+'\',this)">'+v+'</button>';
+  }).join('');
+}
+
+function toggleFilter(key,val,btn){
+  if(activeFilters[key].has(val)) activeFilters[key].delete(val);
+  else activeFilters[key].add(val);
+  btn.classList.toggle('active');
+  page=1; applyFilters();
+}
+
+function setDefaultDateFilter(){
+  var to=today();
+  var d=new Date();d.setDate(d.getDate()-7);
+  var from=fmtYMD(d);
+  el('f-from').value=from; el('f-to').value=to;
+  activeFilters.dateFrom=from; activeFilters.dateTo=to;
+}
+
+function clearFilters(){
+  activeFilters={brands:new Set(),statuses:new Set(),results:new Set(),dateFrom:'',dateTo:''};
+  el('f-from').value=''; el('f-to').value='';
+  var allCb=el('brand-all-cb');
+  if(allCb){allCb.checked=true;allCb.indeterminate=false;}
+  buildFilters(); page=1; applyFilters();
+}
+
+function applyFilters(){
+  activeFilters.dateFrom=el('f-from').value;
+  activeFilters.dateTo=el('f-to').value;
+  filteredRecs=allRecords.filter(function(r){
+    if(activeFilters.brands.size>0&&!activeFilters.brands.has(fldStr(r,'Brand'))) return false;
+    if(activeFilters.statuses.size>0&&!activeFilters.statuses.has(fldStr(r,'Call Status'))) return false;
+    if(activeFilters.results.size>0&&!activeFilters.results.has(fldStr(r,'End Result'))) return false;
+    if(activeFilters.dateFrom||activeFilters.dateTo){
+      var d=r.createdTime?r.createdTime.substring(0,10):'';
+      if(activeFilters.dateFrom&&d<activeFilters.dateFrom) return false;
+      if(activeFilters.dateTo&&d>activeFilters.dateTo) return false;
+    }
+    return true;
+  });
+  renderAll();
+}
+
+// ── Render all ───────────────────────────────────────────────────────────────
+function renderAll(){
+  renderKPIs();
+  renderFunnel();
+  renderDailyChart();
+  renderResultsDonut();
+  renderObjectionsChart();
+  renderBrandChart();
+  renderDurationChart();
+  renderTable();
+}
+
+// ── KPIs ─────────────────────────────────────────────────────────────────────
+function renderKPIs(){
+  var recs=filteredRecs, n=recs.length;
+  var todStr=today(), mon=getMondayOf(new Date());
+
+  // Row 1
+  var today0=recs.filter(function(r){return r.createdTime&&r.createdTime.substring(0,10)===todStr;}).length;
+  var week0=recs.filter(function(r){return r.createdTime&&new Date(r.createdTime)>=mon;}).length;
+  var durs=recs.map(function(r){return parseDuration(fld(r,'Call Duration'));}).filter(function(v){return v>0;});
+  var avgDur=durs.length?Math.round(durs.reduce(function(a,b){return a+b;},0)/durs.length):0;
+  el('k-total').textContent=n;
+  el('k-today').textContent=today0;
+  el('k-week').textContent=week0;
+  el('k-avgdur').textContent=fmtDuration(avgDur);
+
+  // Row 2 — Reach: Spoke to Manager checkmark, Mobile/Email captured checkmarks
+  var dtm=recs.filter(function(r){return isYes(fld(r,'Spoke to Manager'));}).length;
+  var mob=recs.filter(function(r){return isYes(fld(r,'Mobile Captured (Yes/No)'));}).length;
+  var eml=recs.filter(function(r){return isYes(fld(r,'Email Captured (Yes/No)'));}).length;
+  el('k-dtm').textContent=pct(dtm,n)+'%'; el('k-dtm-sub').textContent=dtm+' of '+n+' calls';
+  el('k-mob').textContent=pct(mob,n)+'%'; el('k-mob-sub').textContent=mob+' of '+n;
+  el('k-email').textContent=pct(eml,n)+'%'; el('k-email-sub').textContent=eml+' of '+n;
+
+  // Row 3
+  var fu=recs.filter(function(r){return fldStr(r,'Follow-Up Scheduled');}).length;
+  var answered=recs.filter(function(r){var s=fldStr(r,'Call Status');return s==='Completed'||s==='Answered';}).length;
+  var smsP=recs.filter(function(r){return isYes(fld(r,'SMS Permission'));}).length;
+  var emlP=recs.filter(function(r){return isYes(fld(r,'Email Permission'));}).length;
+  el('k-fu').textContent=pct(fu,n)+'%'; el('k-fu-sub').textContent=fu+' of '+n;
+  el('k-sms').textContent=pct(smsP,answered||1)+'%'; el('k-sms-sub').textContent=smsP+' of '+answered+' answered';
+  el('k-eperm').textContent=pct(emlP,answered||1)+'%'; el('k-eperm-sub').textContent=emlP+' of '+answered+' answered';
+
+  // Row 4 — Interest
+  var intLevels=['high','medium','low','none'];
+  var intColors=['#10B981','#F59E0B','#ED8585','#AEAEAE'];
+  var intCounts=intLevels.map(function(l){return recs.filter(function(r){return (fldStr(r,'Email Interest Level')||'').toLowerCase()===l;}).length;});
+  var intTotal=intCounts.reduce(function(a,b){return a+b;},0)||1;
+  el('k-interest-bar').innerHTML=intCounts.map(function(c,i){
+    return '<div class="interest-seg" style="width:'+Math.round(c/intTotal*100)+'%;background:'+intColors[i]+'"></div>';
+  }).join('');
+  el('k-interest-legend').innerHTML=intLevels.map(function(l,i){
+    return '<div class="interest-legend-item"><div class="interest-dot" style="background:'+intColors[i]+'"></div><span>'+l+' ('+intCounts[i]+')</span></div>';
+  }).join('');
+
+  // Callbacks
+  var cbs=recs.filter(function(r){return fldStr(r,'Callback Time');}).length;
+  el('k-callback').textContent=cbs;
+
+  // Top results
+  var resCounts={};
+  recs.forEach(function(r){var v=fldStr(r,'End Result');if(v)resCounts[v]=(resCounts[v]||0)+1;});
+  var topRes=Object.keys(resCounts).sort(function(a,b){return resCounts[b]-resCounts[a];}).slice(0,5);
+  el('k-results').innerHTML=topRes.length
+    ? topRes.map(function(k){return '<div class="result-pill">'+k+'<span class="result-pill-count">'+resCounts[k]+'</span></div>';}).join('')
+    : '<span style="color:var(--gray);font-size:13px">No data</span>';
+}
+
+// ── Conversion Funnel ─────────────────────────────────────────────────────────
+function renderFunnel(){
+  var recs=filteredRecs, total=recs.length;
+  if(!total){el('funnel').innerHTML='<div class="chart-empty">No data</div>';return;}
+  var stages=[
+    {label:'Total Calls Dialed', count:total},
+    {label:'Calls Connected', count:recs.filter(function(r){var s=fldStr(r,'Call Status');return s==='Completed'||s==='Answered';}).length},
+    {label:'Reached Decision Maker', count:recs.filter(function(r){return isYes(fld(r,'Spoke to Manager'));}).length},
+    {label:'Expressed Interest', count:recs.filter(function(r){return fldStr(r,'Follow-Up Scheduled')||fldStr(r,'Email Interest Level').toLowerCase()==='high';}).length},
+    {label:'Callback Scheduled', count:recs.filter(function(r){return fldStr(r,'Callback Time');}).length},
+    {label:'Store Signed', count:recs.filter(function(r){return fldStr(r,'End Result').toLowerCase().includes('signed');}).length}
+  ];
+  var html='';
+  stages.forEach(function(s,i){
+    var widthPct=Math.max(8,Math.round(s.count/total*100));
+    var convTxt=i===0?'':(stages[i-1].count>0?Math.round(s.count/stages[i-1].count*100)+'%':'0%');
+    var opacity=1-i*0.08;
+    html+='<div class="funnel-stage">'
+      +'<div class="funnel-bar-wrap"><div class="funnel-bar" style="width:'+widthPct+'%;background:linear-gradient(90deg,#DE4990,#2C023B);opacity:'+opacity.toFixed(2)+'">'
+        +'<span class="funnel-bar-label">'+s.label+'</span>'
+        +'<span class="funnel-bar-count">'+s.count+'</span>'
+      +'</div></div>'
+      +'<div class="funnel-conv">'+(i===0?'100%':convTxt)+'</div>'
+      +'</div>';
+    if(i<stages.length-1) html+='<div class="funnel-arrow" style="padding-left:8px;font-size:12px;color:var(--border)">&#x25BC;</div>';
+  });
+  el('funnel').innerHTML=html;
+}
+
+// ── SVG chart helpers ─────────────────────────────────────────────────────────
+function svgText(x,y,txt,opts){
+  opts=opts||{};
+  return '<text x="'+x+'" y="'+y+'" '
+    +'text-anchor="'+(opts.anchor||'start')+'" '
+    +'font-size="'+(opts.size||9)+'" '
+    +'fill="'+(opts.fill||'var(--muted)')+'" '
+    +(opts.weight?'font-weight="'+opts.weight+'"':'')+'>'+txt+'</text>';
+}
+function svgRect(x,y,w,h,fill,rx){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+fill+'" rx="'+(rx||0)+'"/>';}
+
+// ── Daily call volume (line chart) ───────────────────────────────────────────
+function renderDailyChart(){
+  var c=el('chart-daily');
+  // last 14 days
+  var days=[];
+  for(var i=13;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);days.push(fmtYMD(d));}
+  var counts=days.map(function(d){
+    return filteredRecs.filter(function(r){return r.createdTime&&r.createdTime.substring(0,10)===d;}).length;
+  });
+  if(counts.every(function(v){return v===0;})){c.innerHTML='<div class="chart-empty">No calls in last 14 days</div>';return;}
+  var W=460,H=140,pT=10,pB=28,pL=28,pR=16;
+  var pW=W-pL-pR, pH=H-pT-pB;
+  var maxV=Math.max.apply(null,counts)||1;
+  var sx=function(i){return pL+(i/(days.length-1))*pW;};
+  var sy=function(v){return pT+pH-(v/maxV)*pH;};
+  var pts=counts.map(function(v,i){return sx(i).toFixed(1)+','+sy(v).toFixed(1);}).join(' ');
+  var fill=counts.map(function(v,i){return sx(i).toFixed(1)+','+sy(v).toFixed(1);}).join(' ');
+  var fillPath='M'+sx(0).toFixed(1)+','+sy(0).toFixed(1)+' '+fill+' L'+sx(days.length-1).toFixed(1)+','+(pT+pH)+' L'+sx(0).toFixed(1)+','+(pT+pH)+' Z';
+  var grid='';
+  [0,Math.round(maxV/2),maxV].forEach(function(v){
+    var y=sy(v).toFixed(1);
+    grid+='<line x1="'+pL+'" y1="'+y+'" x2="'+(W-pR)+'" y2="'+y+'" stroke="#EDE8F5" stroke-width="0.5"/>';
+    grid+=svgText(pL-3,parseFloat(y)+3,v,{anchor:'end'});
+  });
+  var xlbls='';
+  [0,6,13].forEach(function(i){
+    xlbls+=svgText(sx(i).toFixed(1),H-4,fmtShort(days[i]),{anchor:'middle'});
+  });
+  var dots=counts.map(function(v,i){
+    if(v===0) return '';
+    return '<circle cx="'+sx(i).toFixed(1)+'" cy="'+sy(v).toFixed(1)+'" r="3" fill="#DE4990"/>';
+  }).join('');
+  c.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'
+    +grid+'<path d="'+fillPath+'" fill="#DE4990" fill-opacity=".1"/>'
+    +'<polyline points="'+pts+'" fill="none" stroke="#DE4990" stroke-width="2" stroke-linejoin="round"/>'
+    +dots+xlbls+'</svg>';
+}
+
+// ── End Result donut ─────────────────────────────────────────────────────────
+function renderResultsDonut(){
+  var c=el('chart-results');
+  var counts={};
+  filteredRecs.forEach(function(r){var v=fldStr(r,'End Result');if(v)counts[v]=(counts[v]||0)+1;});
+  var data=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];}).map(function(k){return {name:k,v:counts[k]};});
+  if(!data.length){c.innerHTML='<div class="chart-empty">No data</div>';return;}
+  var total=data.reduce(function(s,d){return s+d.v;},0);
+  var R=44,cx=60,cy=60,circ=2*Math.PI*R;
+  var segs='',offset=-0.25;
+  data.forEach(function(d,i){
+    var frac=d.v/total,dash=(frac*circ).toFixed(2),gap=((1-frac)*circ).toFixed(2);
+    var rot=(offset*360).toFixed(1);
+    segs+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+COLORS[i%COLORS.length]+'" stroke-width="14" stroke-dasharray="'+dash+' '+gap+'" transform="rotate('+rot+' '+cx+' '+cy+')"/>';
+    offset+=frac;
+  });
+  var legend=data.slice(0,6).map(function(d,i){
+    return '<div class="chart-legend-item"><div class="chart-legend-swatch" style="background:'+COLORS[i%COLORS.length]+'"></div><span>'+d.name+' ('+d.v+')</span></div>';
+  }).join('');
+  c.innerHTML='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">'
+    +'<svg viewBox="0 0 120 120" style="width:120px;height:120px;flex-shrink:0">'+segs
+    +'<text x="'+cx+'" y="'+(cy+5)+'" text-anchor="middle" font-family="Gabarito,sans-serif" font-size="16" font-weight="800" fill="var(--dark)">'+total+'</text>'
+    +'<text x="'+cx+'" y="'+(cy+17)+'" text-anchor="middle" font-size="9" fill="var(--muted)">calls</text>'
+    +'</svg><div class="chart-legend" style="flex-direction:column;gap:8px">'+legend+'</div></div>';
+}
+
+// ── Objections horizontal bar ─────────────────────────────────────────────────
+function renderObjectionsChart(){
+  var c=el('chart-objections');
+  var counts={};
+  filteredRecs.forEach(function(r){var v=fldStr(r,'Primary Objection');if(v)counts[v]=(counts[v]||0)+1;});
+  var data=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];}).slice(0,8).map(function(k){return {name:k,v:counts[k]};});
+  if(!data.length){c.innerHTML='<div class="chart-empty">No objection data</div>';return;}
+  var maxV=data[0].v;
+  var barH=20,gap=8,pL=130,pR=40,W=420,pT=4;
+  var H=data.length*(barH+gap)+pT*2;
+  var bars='',labels='',vals='';
+  data.forEach(function(d,i){
+    var y=pT+i*(barH+gap);
+    var bW=Math.max(4,Math.round((d.v/maxV)*(W-pL-pR)));
+    bars+=svgRect(pL,y,bW,barH,'#DE4990',4);
+    labels+=svgText(pL-6,y+barH/2+3,d.name,{anchor:'end',size:10,fill:'var(--text)'});
+    vals+=svgText(pL+bW+5,y+barH/2+3,d.v,{size:10,fill:'var(--dark)',weight:700});
+  });
+  c.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+bars+labels+vals+'</svg>';
+}
+
+// ── Brand performance (horizontal bars: calls) ───────────────────────────────
+function renderBrandChart(){
+  var c=el('chart-brands');
+  var brandCalls={},brandDM={},brandFU={};
+  filteredRecs.forEach(function(r){
+    var b=fldStr(r,'Brand')||'Unknown';
+    brandCalls[b]=(brandCalls[b]||0)+1;
+    if(isYes(fld(r,'Spoke to Manager'))) brandDM[b]=(brandDM[b]||0)+1;
+    if(fldStr(r,'Follow-Up Scheduled')) brandFU[b]=(brandFU[b]||0)+1;
+  });
+  var brands=Object.keys(brandCalls).sort(function(a,b){return brandCalls[b]-brandCalls[a];}).slice(0,6);
+  if(!brands.length){c.innerHTML='<div class="chart-empty">No brand data</div>';return;}
+  var maxV=Math.max.apply(null,brands.map(function(b){return brandCalls[b];}));
+  var pL=120,pR=8,W=420,bH=10,gY=6,gRow=8;
+  var rowH=bH*3+gY*2+gRow;
+  var pT=4;
+  var H=brands.length*rowH+pT;
+  var out='';
+  brands.forEach(function(b,i){
+    var y=pT+i*rowH;
+    var wC=Math.max(4,Math.round((brandCalls[b]/maxV)*(W-pL-pR)));
+    var wD=Math.max(0,Math.round(((brandDM[b]||0)/maxV)*(W-pL-pR)));
+    var wF=Math.max(0,Math.round(((brandFU[b]||0)/maxV)*(W-pL-pR)));
+    out+=svgText(pL-6,y+bH+3,b,{anchor:'end',size:10,fill:'var(--text)'});
+    out+=svgRect(pL,y,wC,bH,'#DE4990',3);
+    out+=svgRect(pL,y+bH+gY,wD,bH,'#2C023B',3);
+    out+=svgRect(pL,y+bH*2+gY*2,wF,bH,'#10B981',3);
+    out+=svgText(pL+wC+4,y+bH-1,brandCalls[b],{size:9,fill:'var(--dark)'});
+  });
+  var legend='<div class="chart-legend">'
+    +'<div class="chart-legend-item"><div class="chart-legend-swatch" style="background:#DE4990"></div>Total Calls</div>'
+    +'<div class="chart-legend-item"><div class="chart-legend-swatch" style="background:#2C023B"></div>DM Reached</div>'
+    +'<div class="chart-legend-item"><div class="chart-legend-swatch" style="background:#10B981"></div>Follow-Up</div>'
+    +'</div>';
+  c.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+out+'</svg>'+legend;
+}
+
+// ── Duration by outcome ───────────────────────────────────────────────────────
+function renderDurationChart(){
+  var c=el('chart-duration');
+  var sums={},cnts={};
+  filteredRecs.forEach(function(r){
+    var res=fldStr(r,'End Result')||'Unknown';
+    var dur=parseDuration(fld(r,'Call Duration'));
+    if(dur>0){sums[res]=(sums[res]||0)+dur;cnts[res]=(cnts[res]||0)+1;}
+  });
+  var data=Object.keys(cnts).map(function(k){return {name:k,avg:Math.round(sums[k]/cnts[k])};})
+    .sort(function(a,b){return b.avg-a.avg;}).slice(0,7);
+  if(!data.length){c.innerHTML='<div class="chart-empty">No duration data</div>';return;}
+  var W=420,H=160,pT=10,pB=36,pL=28,pR=16;
+  var pW=W-pL-pR,pH=H-pT-pB;
+  var maxV=data[0].avg||1;
+  var n=data.length,bW=Math.min(36,pW/n*0.6),gap=(pW-bW*n)/(n+1);
+  var sx=function(i){return pL+gap*(i+1)+bW*i;};
+  var sy=function(v){return pT+pH-(v/maxV)*pH;};
+  var bars='',xlbls='',ylbls='';
+  data.forEach(function(d,i){
+    var x=sx(i).toFixed(1),y=sy(d.avg).toFixed(1),h=((d.avg/maxV)*pH).toFixed(1);
+    bars+=svgRect(x,y,bW.toFixed(1),h,'#EB92BD',4);
+    bars+=svgText((sx(i)+bW/2).toFixed(1),(sy(d.avg)-3).toFixed(1),fmtDuration(d.avg),{anchor:'middle',size:9,fill:'var(--dark)'});
+    var lbl=d.name.length>10?d.name.substring(0,10)+'…':d.name;
+    xlbls+=svgText((sx(i)+bW/2).toFixed(1),(H-4).toFixed(1),lbl,{anchor:'middle',size:8});
+  });
+  [0,Math.round(maxV/2),maxV].forEach(function(v){
+    var y=sy(v).toFixed(1);
+    ylbls+=svgText(pL-3,parseFloat(y)+3,fmtDuration(v),{anchor:'end'});
+  });
+  c.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+ylbls+bars+xlbls+'</svg>';
+}
+
+// ── Table ─────────────────────────────────────────────────────────────────────
+var COLS=[
+  {key:'createdTime',label:'Date/Time'},
+  {key:'Store Name',label:'Store Name'},
+  {key:'Brand',label:'Brand'},
+  {key:'Call Status',label:'Status'},
+  {key:'Contact Role',label:'Contact Role'},
+  {key:'Contact Name',label:'Contact'},
+  {key:'End Result',label:'End Result'},
+  {key:'Call Duration',label:'Duration'},
+  {key:'Follow-Up Scheduled',label:'Follow-Up'}
+];
+
+function sortedRecs(){
+  var recs=filteredRecs.slice();
+  recs.sort(function(a,b){
+    var av,bv;
+    if(sortCol==='createdTime'){av=a.createdTime||'';bv=b.createdTime||'';}
+    else{av=fldStr(a,sortCol);bv=fldStr(b,sortCol);}
+    if(av<bv) return sortAsc?-1:1;
+    if(av>bv) return sortAsc?1:-1;
+    return 0;
+  });
+  return recs;
+}
+
+function renderTable(){
+  var all=sortedRecs(), total=all.length;
+  var pages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+  if(page>pages) page=pages;
+  var slice=all.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
+
+  el('tbl-count').textContent=total+' records (filtered from '+allRecords.length+' total)';
+  el('pg-info').textContent='Page '+page+' of '+pages;
+  el('pg-prev').disabled=page<=1;
+  el('pg-next').disabled=page>=pages;
+
+  var thead='<tr>'+COLS.map(function(col){
+    var arr=sortCol===(col.key==='createdTime'?'createdTime':col.key)?(sortAsc?' ↑':' ↓'):'';
+    return '<th onclick="sortTable(\''+col.key+'\')">'+col.label+arr+'</th>';
+  }).join('')+'</tr>';
+
+  var tbody=slice.length===0
+    ? '<tr><td colspan="'+COLS.length+'" class="tbl-empty">No records match the current filters.</td></tr>'
+    : slice.map(function(r){
+        var dur=parseDuration(fld(r,'Call Duration'));
+        var statusColor={'Completed':'#D1FAE5','Answered':'#D1FAE5','No Answer':'#FEE2E2','Voicemail':'#FEF3C7'}[fldStr(r,'Call Status')]||'var(--pink-pale)';
+        return '<tr class="data-row" onclick="openDrawer(this)" data-id="'+r.id+'">'
+          +'<td style="color:var(--muted)">'+(r.createdTime?fmtDateTime(r.createdTime):'—')+'</td>'
+          +'<td style="font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis">'+(fldStr(r,'Store Name')||'—')+'</td>'
+          +'<td><span class="pill">'+(fldStr(r,'Brand')||'—')+'</span></td>'
+          +'<td><span class="status-pill" style="background:'+statusColor+';color:var(--dark)">'+(fldStr(r,'Call Status')||'—')+'</span></td>'
+          +'<td>'+(fldStr(r,'Contact Role')||'—')+'</td>'
+          +'<td>'+(fldStr(r,'Contact Name')||'—')+'</td>'
+          +'<td>'+(fldStr(r,'End Result')||'—')+'</td>'
+          +'<td>'+(dur?fmtDuration(dur):'—')+'</td>'
+          +'<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis">'+(fldStr(r,'Follow-Up Scheduled')||'—')+'</td>'
+          +'</tr>';
+      }).join('');
+
+  el('tbl-head').innerHTML=thead;
+  el('tbl-body').innerHTML=tbody;
+
+  // Attach record refs to rows
+  var rows=el('tbl-body').querySelectorAll('tr.data-row');
+  rows.forEach(function(row,i){
+    (function(rec){row.addEventListener('click',function(){openDrawerWith(rec);});})(slice[i]);
+  });
+}
+
+function sortTable(key){
+  if(sortCol===key) sortAsc=!sortAsc;
+  else{sortCol=key;sortAsc=true;}
+  page=1; renderTable();
+}
+function changePage(d){page+=d;renderTable();}
+
+// ── Detail Drawer ─────────────────────────────────────────────────────────────
+function openDrawerWith(rec){
+  var f=rec.fields;
+  var str=function(k){return f[k]||'—';};
+  var dur=parseDuration(f['Call Duration']);
+  el('drawer-title').textContent=(f['Store Name']||'Call Detail');
+  el('drawer-body').innerHTML=
+    '<div class="drawer-section-title">Call Overview</div>'
+    +df('Date/Time',rec.createdTime?new Date(rec.createdTime).toLocaleString():'—')
+    +df('Store Name',str('Store Name'))
+    +df('Brand',str('Brand'))
+    +df('Call Status',str('Call Status'))
+    +df('Ended Reason',str('Ended Reason'))
+    +df('Call Duration',dur?fmtDuration(dur):'—')
+    +df('Vapi Call ID',str('Vapi Call ID'))
+    +'<div class="drawer-section-title">Contact</div>'
+    +df('Spoke to Manager',str('Spoke to Manager'))
+    +df('Contact Name',str('Contact Name'))
+    +df('Contact Role',str('Contact Role'))
+    +df('Dialed Phone Number',str('Dialed Phone Number'))
+    +df('Dialed Number Type',str('Dialed Number Type'))
+    +df('Mobile Number',str('Mobile Number'))
+    +'<div class="drawer-section-title">Permissions & Capture</div>'
+    +df('SMS Permission',str('SMS Permission'))
+    +df('Email Permission',str('Email Permission'))
+    +df('Mobile Captured (Yes/No)',str('Mobile Captured (Yes/No)'))
+    +df('Email Captured (Yes/No)',str('Email Captured (Yes/No)'))
+    +df('Email Interest Level',str('Email Interest Level'))
+    +'<div class="drawer-section-title">Outcome</div>'
+    +df('End Result',str('End Result'))
+    +df('Primary Objection',str('Primary Objection'))
+    +df('Follow-Up Scheduled',str('Follow-Up Scheduled'))
+    +df('Callback Time',str('Callback Time'))
+    +'<div class="drawer-section-title">Follow-Up Actions</div>'
+    +df('SMS (trigger)',str('SMS (trigger)'))
+    +df('Log Email (trigger)',str('Log Email (trigger)'))
+    +df('Voicemail SMS Sent',str('Voicemail SMS Sent'))
+    +df('Voicemail SMS Status',str('Voicemail SMS Status'))
+    +'<div class="drawer-section-title">Call Summary</div>'
+    +'<div class="drawer-field"><div class="drawer-field-value summary">'+(f['Call Summary Log']||'No summary available.')+'</div></div>';
+
+  el('drawer').classList.add('open');
+  el('drawer-overlay').style.display='block';
+}
+function df(label,value){
+  return '<div class="drawer-field"><div class="drawer-field-label">'+label+'</div><div class="drawer-field-value">'+value+'</div></div>';
+}
+function closeDrawer(){
+  el('drawer').classList.remove('open');
+  el('drawer-overlay').style.display='none';
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+function exportCSV(){
+  var all=sortedRecs();
+  var headers=['Date/Time','Store Name','Brand','Call Status','Spoke to Manager','Contact Name','Contact Role',
+               'End Result','Call Duration','Follow-Up Scheduled','Primary Objection','Callback Time',
+               'SMS Permission','Email Permission','Mobile Captured (Yes/No)','Email Interest Level',
+               'Voicemail SMS Sent','Ended Reason','Dialed Phone Number','Vapi Call ID'];
+  var rows=[headers];
+  all.forEach(function(r){
+    var dur=parseDuration(fld(r,'Call Duration'));
+    rows.push([
+      r.createdTime?new Date(r.createdTime).toLocaleString():'',
+      fldStr(r,'Store Name'),fldStr(r,'Brand'),fldStr(r,'Call Status'),
+      fldStr(r,'Spoke to Manager'),fldStr(r,'Contact Name'),fldStr(r,'Contact Role'),
+      fldStr(r,'End Result'),dur?fmtDuration(dur):'',fldStr(r,'Follow-Up Scheduled'),
+      fldStr(r,'Primary Objection'),fldStr(r,'Callback Time'),
+      fldStr(r,'SMS Permission'),fldStr(r,'Email Permission'),
+      fldStr(r,'Mobile Captured (Yes/No)'),fldStr(r,'Email Interest Level'),
+      fldStr(r,'Voicemail SMS Sent'),fldStr(r,'Ended Reason'),
+      fldStr(r,'Dialed Phone Number'),fldStr(r,'Vapi Call ID')
+    ]);
+  });
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='call-activity-'+(new Date().toISOString().substring(0,10))+'.csv';
+  a.click();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(function(){
+  loadStorage();
+  if(allRecords.length){
+    updateFetchInfo();
+    buildFilters();
+    setDefaultDateFilter();
+    applyFilters();
+    el('content').style.display='block';
+    el('refresh-btn').style.display='inline-flex';
+    el('fetch-info').style.display='block';
+    fetchData(); // auto-refresh in background
+  } else {
+    fetchData();
+  }
+})();
+</script>
+</body>
+</html>
