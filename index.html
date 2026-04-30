@@ -256,7 +256,7 @@ p{color:var(--gray-700);line-height:1.75}
         <a href="#how-it-works">How It Works</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
-        <button class="nav-chat" onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')">Chat with Us</button>
+        <button class="nav-chat" onclick="openHSChat()">Chat with Us</button>
       </nav>
       <a href="https://onboarding.lulacommerce.com/gen" target="_blank" class="btn btn-pink" style="padding:10px 20px;font-size:.88rem">Get Started Free</a>
     </div>
@@ -458,7 +458,7 @@ p{color:var(--gray-700);line-height:1.75}
         <div style="margin-top:24px;padding:20px;background:var(--gray-50);border-radius:var(--r)">
           <div style="font-weight:700;font-size:.95rem;margin-bottom:10px">Still have questions? Chat with us.</div>
           <p style="font-size:.88rem;margin-bottom:14px">A Lula Commerce expert is available to answer your questions in real time.</p>
-          <button onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')" class="btn btn-pink" style="font-size:.88rem;padding:10px 20px;border:none;cursor:pointer">Chat with a Commerce Expert →</button>
+          <button onclick="openHSChat()" class="btn btn-pink" style="font-size:.88rem;padding:10px 20px;border:none;cursor:pointer">Chat with a Commerce Expert →</button>
           <div style="margin-top:10px;font-size:.82rem;color:var(--gray-500)">Prefer email? <a href="javascript:void(0)" onclick="openEmailModal()" style="color:var(--pink);text-decoration:none;font-weight:500">Send us a message →</a></div>
         </div>
       </div>
@@ -578,9 +578,9 @@ p{color:var(--gray-700);line-height:1.75}
     <p>Join over 1,000 independent operators already using Lula Commerce to grow their delivery revenue — risk-free for 90 days.</p>
     <div class="cta-acts">
       <a href="https://onboarding.lulacommerce.com/gen" target="_blank" class="btn btn-pink btn-lg">Sign Up Free — 90 Days</a>
-      <button onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')" class="btn btn-white btn-lg" style="border:none;cursor:pointer">Chat with a Commerce Expert</button>
+      <button onclick="openHSChat()" class="btn btn-white btn-lg" style="border:none;cursor:pointer">Chat with a Commerce Expert</button>
     </div>
-    <div class="cta-help">Questions? <a href="javascript:void(0)" onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')">Chat with an expert</a> &nbsp;&middot;&nbsp; <a href="javascript:void(0)" onclick="openEmailModal()" style="color:inherit">Email us →</a></div>
+    <div class="cta-help">Questions? <a href="javascript:void(0)" onclick="openHSChat()">Chat with an expert</a> &nbsp;&middot;&nbsp; <a href="javascript:void(0)" onclick="openEmailModal()" style="color:inherit">Email us →</a></div>
   </div>
 </section>
 
@@ -749,16 +749,19 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 })();
 </script>
 
-<!-- Intercom Chat -->
+<!-- HubSpot Chat -->
 <script>
-  window.intercomSettings = {
-    api_base: "https://api-iam.intercom.io",
-    app_id: "k5h7krsz",
-    hide_default_launcher: true
+  window.hsConversationsSettings = { loadImmediately: false };
+  window.openHSChat = function() {
+    var hs = window.HubSpotConversations;
+    if (!hs) return;
+    if (!hs.widget.status().loaded) {
+      hs.widget.load({ widgetOpen: true });
+    } else {
+      hs.widget.open();
+    }
   };
 </script>
-<script>
-  (function(){var w=window;var ic=w.Intercom;if(typeof ic==="function"){ic('reattach_activator');ic('update',w.intercomSettings);}else{var d=document;var i=function(){i.c(arguments);};i.c=[];i.q=[];var l=function(){i.q.push(arguments);};w.Intercom=l;l('boot',w.intercomSettings);var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/k5h7krsz';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);}})();
-</script>
+<script type="text/javascript" id="hs-script-loader" async defer src="//js.hs-scripts.com/9165854.js"></script>
 </body>
 </html>
