@@ -442,9 +442,9 @@ p{color:var(--gray-700);line-height:1.75}
           The 10% is Lula's fee for the managed AI services running behind the scenes on your behalf — automated order routing, menu syncing, uptime monitoring, dispute handling, and more. It's charged only on delivery orders you actually receive, so we're directly tied to your success. When you earn, we earn.
         </div>
         <div style="margin-top:24px;padding:20px;background:var(--gray-50);border-radius:var(--r)">
-          <div style="font-weight:700;font-size:.95rem;margin-bottom:10px">Questions? We're here.</div>
-          <p style="font-size:.88rem;margin-bottom:14px">Visit our help center or reach out to your account team directly.</p>
-          <a href="https://help.lulacommerce.com/en/" target="_blank" class="btn btn-outline" style="font-size:.88rem;padding:10px 20px">Visit Help Center →</a>
+          <div style="font-weight:700;font-size:.95rem;margin-bottom:10px">Still have questions? Chat with us.</div>
+          <p style="font-size:.88rem;margin-bottom:14px">A Lula Commerce expert is available to answer your questions in real time.</p>
+          <button onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')" class="btn btn-pink" style="font-size:.88rem;padding:10px 20px;border:none;cursor:pointer">Chat with a Commerce Expert →</button>
         </div>
       </div>
     </div>
@@ -563,9 +563,9 @@ p{color:var(--gray-700);line-height:1.75}
     <p>Join over 1,000 independent operators already using Lula Commerce to grow their delivery revenue — risk-free for 90 days.</p>
     <div class="cta-acts">
       <a href="https://onboarding.lulacommerce.com/gen" target="_blank" class="btn btn-pink btn-lg">Sign Up Free — 90 Days</a>
-      <a href="https://help.lulacommerce.com/en/" target="_blank" class="btn btn-white btn-lg">Visit Help Center</a>
+      <button onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')" class="btn btn-white btn-lg" style="border:none;cursor:pointer">Chat with a Commerce Expert</button>
     </div>
-    <div class="cta-help">Questions? <a href="https://help.lulacommerce.com/en/" target="_blank">help.lulacommerce.com</a></div>
+    <div class="cta-help">Questions? <a href="javascript:void(0)" onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')">Chat with a commerce expert →</a></div>
   </div>
 </section>
 
@@ -634,6 +634,18 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     }
   });
 });
+</script>
+
+<!-- Intercom Chat -->
+<script>
+  window.intercomSettings = {
+    api_base: "https://api-iam.intercom.io",
+    app_id: "k5h7krsz",
+    hide_default_launcher: true
+  };
+</script>
+<script>
+  (function(){var w=window;var ic=w.Intercom;if(typeof ic==="function"){ic('reattach_activator');ic('update',w.intercomSettings);}else{var d=document;var i=function(){i.c(arguments);};i.c=[];i.q=[];var l=function(){i.q.push(arguments);};w.Intercom=l;l('boot',w.intercomSettings);var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/k5h7krsz';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);}})();
 </script>
 </body>
 </html>
