@@ -213,6 +213,17 @@ p{color:var(--gray-700);line-height:1.75}
   h1{font-size:2rem}
   .section{padding:60px 0}
 }
+/* ── EMAIL MODAL ─────────────────────────────────────── */
+.em-overlay{display:none;position:fixed;inset:0;background:rgba(44,2,59,.55);z-index:9000;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}
+.em-card{background:#fff;border-radius:var(--r-lg);padding:36px 32px;max-width:460px;width:100%;position:relative;box-shadow:var(--sh-lg)}
+.em-close{position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;font-size:1.5rem;color:var(--gray-500);line-height:1;padding:4px}
+.em-field{width:100%;padding:11px 14px;border:1.5px solid var(--gray-300);border-radius:var(--r);font-size:.9rem;font-family:'Inter',sans-serif;box-sizing:border-box;outline:none;transition:border-color .2s;margin-bottom:12px;display:block}
+.em-field:focus{border-color:var(--pink)}
+.em-submit{width:100%;padding:13px;background:var(--pink);color:#fff;border:none;border-radius:var(--r);font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;margin-top:6px}
+.em-submit:hover{background:var(--dark-2)}
+.em-submit:disabled{opacity:.6;cursor:default}
+.em-err{display:none;margin-top:10px;font-size:.84rem;color:#e53e3e;text-align:center}
+.em-success{display:none;text-align:center;padding:16px 0}
 </style>
 </head>
 <body>
@@ -448,6 +459,7 @@ p{color:var(--gray-700);line-height:1.75}
           <div style="font-weight:700;font-size:.95rem;margin-bottom:10px">Still have questions? Chat with us.</div>
           <p style="font-size:.88rem;margin-bottom:14px">A Lula Commerce expert is available to answer your questions in real time.</p>
           <button onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')" class="btn btn-pink" style="font-size:.88rem;padding:10px 20px;border:none;cursor:pointer">Chat with a Commerce Expert →</button>
+          <div style="margin-top:10px;font-size:.82rem;color:var(--gray-500)">Prefer email? <a href="javascript:void(0)" onclick="openEmailModal()" style="color:var(--pink);text-decoration:none;font-weight:500">Send us a message →</a></div>
         </div>
       </div>
     </div>
@@ -568,7 +580,7 @@ p{color:var(--gray-700);line-height:1.75}
       <a href="https://onboarding.lulacommerce.com/gen" target="_blank" class="btn btn-pink btn-lg">Sign Up Free — 90 Days</a>
       <button onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')" class="btn btn-white btn-lg" style="border:none;cursor:pointer">Chat with a Commerce Expert</button>
     </div>
-    <div class="cta-help">Questions? <a href="javascript:void(0)" onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')">Chat with a commerce expert →</a></div>
+    <div class="cta-help">Questions? <a href="javascript:void(0)" onclick="window.Intercom('showNewMessage','Hi! I have a question about the Lula Commerce program.')">Chat with an expert</a> &nbsp;&middot;&nbsp; <a href="javascript:void(0)" onclick="openEmailModal()" style="color:inherit">Email us →</a></div>
   </div>
 </section>
 
@@ -637,6 +649,104 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     }
   });
 });
+</script>
+
+<!-- Email Modal -->
+<div id="em-overlay" class="em-overlay">
+  <div class="em-card">
+    <button class="em-close" onclick="closeEmailModal()">&#215;</button>
+    <div style="font-family:var(--h);font-weight:800;font-size:1.25rem;color:var(--dark);margin-bottom:6px">Send us a message</div>
+    <p style="font-size:.87rem;color:var(--gray-500);margin-bottom:22px">A Lula Commerce expert will get back to you shortly.</p>
+    <div id="em-form">
+      <input id="em-name" class="em-field" type="text" placeholder="Your name *">
+      <input id="em-email" class="em-field" type="email" placeholder="Email address *">
+      <input id="em-phone" class="em-field" type="tel" placeholder="Phone number (optional)">
+      <textarea id="em-msg" class="em-field" rows="4" placeholder="What would you like to know? *" style="resize:vertical;margin-bottom:0"></textarea>
+      <button class="em-submit" id="em-btn" onclick="submitEmail()">Send Message &#8594;</button>
+      <div id="em-err" class="em-err"></div>
+    </div>
+    <div id="em-success" class="em-success">
+      <div style="font-size:2rem;color:var(--pink);margin-bottom:10px">&#10003;</div>
+      <div style="font-family:var(--h);font-weight:700;font-size:1.1rem;color:var(--dark);margin-bottom:8px">Message sent!</div>
+      <p style="font-size:.87rem;color:var(--gray-500)">We'll be in touch within one business day.</p>
+    </div>
+  </div>
+</div>
+
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+(function(){
+  // ↓ Replace these three values after EmailJS setup (emailjs.com)
+  var EJS_PK  = 'YOUR_PUBLIC_KEY';
+  var EJS_SVC = 'YOUR_SERVICE_ID';
+  var EJS_TPL = 'YOUR_TEMPLATE_ID';
+
+  emailjs.init(EJS_PK);
+
+  window.openEmailModal = function() {
+    document.getElementById('em-overlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeEmailModal = function() {
+    document.getElementById('em-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('em-form').style.display = 'block';
+    document.getElementById('em-success').style.display = 'none';
+    document.getElementById('em-err').style.display = 'none';
+    ['em-name','em-email','em-phone','em-msg'].forEach(function(id){
+      document.getElementById(id).value = '';
+    });
+    var btn = document.getElementById('em-btn');
+    btn.disabled = false;
+    btn.textContent = 'Send Message →';
+  };
+
+  window.submitEmail = function() {
+    var name  = document.getElementById('em-name').value.trim();
+    var email = document.getElementById('em-email').value.trim();
+    var phone = document.getElementById('em-phone').value.trim();
+    var msg   = document.getElementById('em-msg').value.trim();
+    var errEl = document.getElementById('em-err');
+    var btn   = document.getElementById('em-btn');
+
+    errEl.style.display = 'none';
+    if (!name || !email || !msg) {
+      errEl.textContent = 'Please fill in all required fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      errEl.textContent = 'Please enter a valid email address.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    emailjs.send(EJS_SVC, EJS_TPL, {
+      from_name:  name,
+      from_email: email,
+      phone:      phone || 'Not provided',
+      message:    msg
+    }).then(function() {
+      document.getElementById('em-form').style.display = 'none';
+      document.getElementById('em-success').style.display = 'block';
+    }, function(err) {
+      errEl.textContent = 'Something went wrong. Please try again.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Send Message →';
+      console.error('EmailJS error:', err);
+    });
+  };
+
+  document.getElementById('em-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeEmailModal();
+  });
+})();
 </script>
 
 <!-- Intercom Chat -->
