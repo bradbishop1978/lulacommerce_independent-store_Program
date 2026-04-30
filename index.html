@@ -757,14 +757,16 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
 <!-- HubSpot Chat -->
 <script>
-  window.hsConversationsSettings = { loadImmediately: false };
   window.openHSChat = function() {
     var hs = window.HubSpotConversations;
-    if (!hs || !hs.widget) return;
-    if (!hs.widget.status().loaded) {
-      hs.widget.load({ widgetOpen: true });
-    } else {
+    if (hs && hs.widget) {
       hs.widget.open();
+    } else {
+      // API not ready yet — retry once it is
+      window.hsConversationsOnReady = window.hsConversationsOnReady || [];
+      window.hsConversationsOnReady.push(function() {
+        window.HubSpotConversations.widget.open();
+      });
     }
   };
 </script>
