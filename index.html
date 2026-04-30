@@ -760,15 +760,11 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   window.hsConversationsSettings = { loadImmediately: false };
   window.openHSChat = function() {
     var hs = window.HubSpotConversations;
-    if (hs && hs.widget) {
-      if (!hs.widget.status().loaded) {
-        hs.widget.load({ widgetOpen: true });
-      } else {
-        hs.widget.open();
-      }
+    if (!hs || !hs.widget) return;
+    if (!hs.widget.status().loaded) {
+      hs.widget.load({ widgetOpen: true });
     } else {
-      // HubSpot chat not yet configured — fall back to email modal
-      openEmailModal();
+      hs.widget.open();
     }
   };
 </script>
