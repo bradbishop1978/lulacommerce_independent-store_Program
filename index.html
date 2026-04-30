@@ -673,17 +673,9 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   </div>
 </div>
 
-<!-- EmailJS -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<!-- Email Modal JS (FormSubmit — no account or API key needed) -->
 <script>
 (function(){
-  // ↓ Replace these three values after EmailJS setup (emailjs.com)
-  var EJS_PK  = 'YOUR_PUBLIC_KEY';
-  var EJS_SVC = 'YOUR_SERVICE_ID';
-  var EJS_TPL = 'YOUR_TEMPLATE_ID';
-
-  emailjs.init(EJS_PK);
-
   window.openEmailModal = function() {
     document.getElementById('em-overlay').style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -726,20 +718,31 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     btn.disabled = true;
     btn.textContent = 'Sending…';
 
-    emailjs.send(EJS_SVC, EJS_TPL, {
-      from_name:  name,
-      from_email: email,
-      phone:      phone || 'Not provided',
-      message:    msg
-    }).then(function() {
-      document.getElementById('em-form').style.display = 'none';
-      document.getElementById('em-success').style.display = 'block';
-    }, function(err) {
+    fetch('https://formsubmit.co/ajax/bernard.penoliar@luladelivery.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        name:    name,
+        email:   email,
+        phone:   phone || 'Not provided',
+        message: msg,
+        _subject: 'New inquiry from Lula Commerce Program Guide — ' + name
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (data.success === 'true' || data.success === true) {
+        document.getElementById('em-form').style.display = 'none';
+        document.getElementById('em-success').style.display = 'block';
+      } else {
+        throw new Error('FormSubmit returned failure');
+      }
+    })
+    .catch(function() {
       errEl.textContent = 'Something went wrong. Please try again.';
       errEl.style.display = 'block';
       btn.disabled = false;
       btn.textContent = 'Send Message →';
-      console.error('EmailJS error:', err);
     });
   };
 
@@ -754,11 +757,15 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   window.hsConversationsSettings = { loadImmediately: false };
   window.openHSChat = function() {
     var hs = window.HubSpotConversations;
-    if (!hs) return;
-    if (!hs.widget.status().loaded) {
-      hs.widget.load({ widgetOpen: true });
+    if (hs && hs.widget) {
+      if (!hs.widget.status().loaded) {
+        hs.widget.load({ widgetOpen: true });
+      } else {
+        hs.widget.open();
+      }
     } else {
-      hs.widget.open();
+      // HubSpot chat not yet configured — fall back to email modal
+      openEmailModal();
     }
   };
 </script>
