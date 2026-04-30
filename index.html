@@ -68,8 +68,10 @@ p{color:var(--gray-700);line-height:1.75}
 .nav{display:flex;align-items:center;gap:28px}
 .nav a{font-size:.88rem;font-weight:500;color:var(--gray-700);transition:var(--t)}
 .nav a:hover{color:var(--pink)}
-.nav-chat{font-size:.88rem;font-weight:600;color:var(--pink);background:none;border:1.5px solid var(--pink);border-radius:20px;padding:5px 16px;cursor:pointer;transition:var(--t);font-family:var(--body,'Inter',sans-serif)}
+.nav-chat{font-size:.88rem;font-weight:600;color:var(--pink);background:none;border:1.5px solid var(--pink);border-radius:20px;padding:5px 16px;cursor:pointer;transition:var(--t);font-family:'Inter',sans-serif}
 .nav-chat:hover{background:var(--pink);color:#fff}
+.nav-email{font-size:.88rem;font-weight:500;color:var(--gray-700);background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:var(--t);padding:0}
+.nav-email:hover{color:var(--pink)}
 /* ── HERO ───────────────────────────────────────────── */
 .hero{background:linear-gradient(155deg,var(--pink-pale) 0%,#fce8f0 55%,#fff 100%);padding:96px 0 80px;position:relative;overflow:hidden}
 .hero::after{content:'';position:absolute;top:-100px;right:-100px;width:480px;height:480px;background:radial-gradient(circle,rgba(222,73,144,.1) 0%,transparent 70%);border-radius:50%;pointer-events:none}
@@ -256,6 +258,7 @@ p{color:var(--gray-700);line-height:1.75}
         <a href="#how-it-works">How It Works</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
+        <button class="nav-email" onclick="openEmailModal()">Email Us</button>
         <button class="nav-chat" onclick="openHSChat()">Chat with Us</button>
       </nav>
       <a href="https://onboarding.lulacommerce.com/gen" target="_blank" class="btn btn-pink" style="padding:10px 20px;font-size:.88rem">Get Started Free</a>
@@ -277,7 +280,7 @@ p{color:var(--gray-700);line-height:1.75}
         </div>
         <div class="hero-note">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Complete the onboarding form to get started &nbsp;·&nbsp; Cancel anytime
+          Complete the onboarding form to get started &nbsp;·&nbsp; No long-term contract
         </div>
       </div>
       <div class="hcard fade-up">
@@ -338,9 +341,9 @@ p{color:var(--gray-700);line-height:1.75}
         <p>Menu updates, pricing changes, and availability sync automatically across all platforms — so what customers see is always accurate.</p>
       </div>
       <div class="feat-card fade-up">
-        <div class="feat-icon">💰</div>
-        <h3>Weekly Payouts</h3>
-        <p>Every marketplace remits your funds (less their fees) directly to you every week — reliable, predictable, and hassle-free.</p>
+        <div class="feat-icon">🛡️</div>
+        <h3>Dispute &amp; Chargeback Protection</h3>
+        <p>Lula monitors and resolves customer disputes and chargebacks across all platforms automatically — so you never lose revenue to issues you didn't cause.</p>
       </div>
       <div class="feat-card fade-up">
         <div class="feat-icon">🛠️</div>
