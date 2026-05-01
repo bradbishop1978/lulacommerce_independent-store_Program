@@ -47,12 +47,14 @@
     .prog-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
     .prog-lbl{font-size:13px;color:var(--muted)}
     .prog-pct{font-family:'Gabarito',sans-serif;font-size:18px;font-weight:800;color:var(--pink)}
-    .prog-outer{height:12px;background:var(--border);border-radius:6px;overflow:hidden}
-    .prog-inner{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--pink),var(--pink-light));transition:width .4s}
+    .prog-outer{height:12px;background:var(--border);border-radius:6px;overflow:hidden;display:flex}
+    .prog-fill-closed{height:100%;background:var(--pink);transition:width .4s}
+    .prog-fill-signed{height:100%;background:var(--pink-light);transition:width .4s}
+    .prog-legend{display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--muted)}
+    .prog-legend-dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
     .btn{padding:10px 20px;border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
     .btn-p{background:var(--pink);color:#fff}.btn-p:hover{background:#C73F7E}
     .btn-s{background:var(--pink-pale);color:var(--dark);border:1.5px solid var(--border)}.btn-s:hover{background:#F0E8FF}
-    .btn-d{background:#FEE2E2;color:#991B1B}.btn-d:hover{background:#FECACA}
     .btn-sm{padding:5px 12px;font-size:12px}
     .btn:disabled{opacity:.5;cursor:not-allowed}
     .tbl-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -66,6 +68,8 @@
     tr:hover td{background:var(--pink-pale)}
     .tbl-empty{text-align:center;padding:40px;color:var(--gray);font-size:13px}
     .pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;background:var(--pink-pale);color:var(--dark)}
+    .pill-closed{background:#D1FAE5;color:#065F46}
+    .pill-signed{background:#FEF3C7;color:#92400E}
     .alert{background:#FEE2E2;color:#991B1B;padding:12px 16px;border-radius:8px;margin-bottom:16px;display:none;align-items:center;gap:8px;font-size:13px}
     .alert button{margin-left:auto;background:none;border:none;cursor:pointer;color:#991B1B;font-size:16px;line-height:1}
     .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px}
@@ -84,9 +88,7 @@
       .main{padding:16px}
       .header{padding:12px 16px}
     }
-    @media(max-width:480px){
-      .grid4{grid-template-columns:1fr}
-    }
+    @media(max-width:480px){.grid4{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -111,7 +113,7 @@
     </div>
   </div>
   <div class="hmeta">
-    <div>107 store goal &middot; 10 weeks &middot; Q2 2026</div>
+    <div>150 store goal &middot; 10 weeks &middot; Q2 2026</div>
     <div id="hdr-date" style="margin-top:4px"></div>
   </div>
 </div>
@@ -125,38 +127,46 @@
   <!-- Progress bar -->
   <div class="card gap">
     <div class="prog-hdr">
-      <span id="prog-text" class="prog-lbl">0 of 107 stores signed</span>
+      <span id="prog-text" class="prog-lbl">0 of 150 stores signed</span>
       <span id="prog-pct" class="prog-pct">0%</span>
     </div>
-    <div class="prog-outer"><div id="prog-fill" class="prog-inner" style="width:0%"></div></div>
-    <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted)">
-      <span>Apr 1 &mdash; Q2 Start</span>
-      <span>Required: 10.7 stores/week</span>
-      <span>Jun 10 &mdash; Goal Date</span>
+    <div class="prog-outer">
+      <div id="prog-fill-closed" class="prog-fill-closed" style="width:0%"></div>
+      <div id="prog-fill-signed" class="prog-fill-signed" style="width:0%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">
+      <div class="prog-legend">
+        <span><span class="prog-legend-dot" style="background:var(--pink)"></span><span id="leg-closed">0 Closed Won</span></span>
+        <span><span class="prog-legend-dot" style="background:var(--pink-light)"></span><span id="leg-signed">0 Signed (Pending)</span></span>
+      </div>
+      <div style="display:flex;gap:16px;font-size:11px;color:var(--muted)">
+        <span>Required: 15 stores/week</span>
+        <span>Jun 10 &mdash; Goal Date</span>
+      </div>
     </div>
   </div>
 
   <!-- Stats row -->
   <div class="grid4">
     <div class="card">
-      <div class="stat-label">Today</div>
-      <div id="s-today" class="stat-val">0</div>
-      <div class="stat-sub">stores signed today</div>
+      <div class="stat-label">Closed Won</div>
+      <div id="s-closed" class="stat-val" style="color:var(--pink)">0</div>
+      <div class="stat-sub">fully activated</div>
     </div>
     <div class="card">
-      <div class="stat-label">This Week</div>
-      <div id="s-week" class="stat-val">0</div>
-      <div class="stat-sub">since Monday</div>
+      <div class="stat-label">Signed (Pending)</div>
+      <div id="s-signed" class="stat-val" style="color:var(--pink-light)">0</div>
+      <div class="stat-sub">payment not yet received</div>
     </div>
     <div class="card">
-      <div class="stat-label">Total Signed</div>
-      <div id="s-total" class="stat-val" style="color:var(--pink)">0</div>
-      <div id="s-remaining" class="stat-sub">107 remaining to goal</div>
+      <div class="stat-label">Total Progress</div>
+      <div id="s-total" class="stat-val">0</div>
+      <div id="s-remaining" class="stat-sub">150 remaining to goal</div>
     </div>
     <div class="card">
       <div class="stat-label">Weeks Left</div>
-      <div id="s-weeks" class="stat-val">0.0</div>
-      <div class="stat-sub">of 10 total weeks</div>
+      <div id="s-weeks" class="stat-val">—</div>
+      <div class="stat-sub">until Jun 10, 2026</div>
     </div>
   </div>
 
@@ -173,7 +183,7 @@
     </div>
     <div class="proj-card">
       <div class="section-title" style="margin-bottom:12px">Projection</div>
-      <div id="proj-text" class="proj-sentence">No data yet. Click &ldquo;Sync from HubSpot&rdquo; below to load Closed Won deals.</div>
+      <div id="proj-text" class="proj-sentence">No data yet. Click &ldquo;Refresh Data&rdquo; below to load deals from HubSpot.</div>
       <div class="proj-grid">
         <div><div class="proj-lbl">Projected Date</div><div id="proj-date" class="proj-val">N/A</div></div>
         <div><div class="proj-lbl">Weeks to Goal</div><div id="proj-weeks" class="proj-val">N/A</div></div>
@@ -186,34 +196,35 @@
   <div class="grid2">
     <div class="card">
       <div class="chart-title">Weekly Signings</div>
-      <div id="chart-bars"><div class="chart-empty">Sync from HubSpot to see weekly chart</div></div>
+      <div id="chart-bars"><div class="chart-empty">Refresh to see weekly chart</div></div>
     </div>
     <div class="card">
       <div class="chart-title">By Brand</div>
-      <div id="chart-donut"><div class="chart-empty">Sync from HubSpot to see brand breakdown</div></div>
+      <div id="chart-donut"><div class="chart-empty">Refresh to see brand breakdown</div></div>
     </div>
   </div>
 
   <!-- Line chart -->
   <div class="card gap">
     <div class="chart-title">Cumulative Progress vs Required Pace</div>
-    <div id="chart-line"><div class="chart-empty">Sync from HubSpot to see progress line</div></div>
+    <div id="chart-line"><div class="chart-empty">Refresh to see progress line</div></div>
   </div>
 
-  <!-- HubSpot Sync -->
+  <!-- Data sync -->
   <div class="card gap">
     <div class="sync-row">
       <div class="sync-info">
         <div class="chart-title" style="margin-bottom:0">HubSpot Data</div>
-        <div id="sync-status" class="sync-meta">Not yet synced</div>
+        <div id="sync-status" class="sync-meta">Not yet loaded — click Refresh Data</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-p" id="btn-sync" onclick="syncFromHubSpot()">&#8635; Sync from HubSpot</button>
+        <button class="btn btn-p" id="btn-sync" onclick="refreshData()">&#8635; Refresh Data</button>
         <button class="btn btn-s btn-sm" onclick="exportCSV()">Export CSV</button>
       </div>
     </div>
-    <div id="hs-token-warn" style="margin-top:12px;padding:10px 14px;background:#FEF3C7;border-radius:8px;font-size:12px;color:#92400E;display:none">
-      &#9888; Add your HubSpot Private App token: open this file and set <code style="background:#FDE68A;padding:1px 5px;border-radius:3px">HS_TOKEN</code> at the top of the &lt;script&gt; block.
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6">
+      Data is synced automatically every day via GitHub Actions. Click Refresh to load the latest snapshot.
+      To trigger an immediate sync: go to the GitHub repo &rarr; Actions &rarr; <em>Sync HubSpot Deals</em> &rarr; Run workflow.
     </div>
   </div>
 
@@ -221,6 +232,7 @@
   <div class="card">
     <div class="tbl-toolbar">
       <span id="tbl-count" class="tbl-count">0 deals</span>
+      <button class="btn btn-s btn-sm" onclick="exportCSV()">Export CSV</button>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -236,18 +248,20 @@
 <script>
 'use strict';
 
-// ── HubSpot config ────────────────────────────────────────────────────────────
-// Create a Private App in HubSpot → Settings → Integrations → Private Apps
-// Scopes needed: crm.objects.deals.read, crm.objects.owners.read
-var HS_TOKEN  = 'pat-na1-f5cb4d8a-5284-43af-9504-3c52446a9280';
-var HS_CACHE_KEY = 'lula_hs_deals_cache';
+// ── HubSpot stage names ───────────────────────────────────────────────────────
+// Verify internal names: HubSpot → Settings → Properties → Deals → deal stage
+// Click each stage to see its Internal name.
+var HS_CLOSED_STAGE = 'closedwon';
+var HS_SIGNED_STAGE = 'signed';   // ← update if your stage has a different internal name
 
 // ── Goal constants ────────────────────────────────────────────────────────────
-var GOAL = 107, WEEKS = 10, Q2_START = '2026-04-01', REQ_PACE = 10.7;
+var GOAL = 150, WEEKS = 10, Q2_START = '2026-04-01', REQ_PACE = 15.0;
 var COLORS = ['#DE4990','#2C023B','#EB92BD','#B799FF','#F59E0B','#10B981'];
+var HS_CACHE_KEY = 'lula_hs_deals_cache';
 
 // ── State ─────────────────────────────────────────────────────────────────────
-var entries = [];   // [{id, date, brand, stores, dealname, owner}]
+// entries = deals where stage is closedwon OR signed
+var entries = [];
 var lastSynced = null;
 var sortKey = 'date', sortDir = 'desc';
 
@@ -267,86 +281,50 @@ function monday(d) {
 }
 function addDays(d, n) { var r = new Date(d); r.setDate(r.getDate()+n); return r; }
 
-// ── HubSpot API ───────────────────────────────────────────────────────────────
-async function fetchOwners() {
-  var resp = await fetch('https://api.hubapi.com/crm/v3/owners?limit=100', {
-    headers: { 'Authorization': 'Bearer '+HS_TOKEN }
-  });
-  if (!resp.ok) throw new Error('Owners fetch failed: '+resp.status);
-  var data = await resp.json();
-  var map = {};
-  (data.results||[]).forEach(function(o) {
-    map[String(o.id)] = ((o.firstName||'')+' '+(o.lastName||'')).trim() || o.email || String(o.id);
-  });
-  return map;
-}
-
-async function fetchAllDeals(ownerMap) {
-  var results = [], after = null;
-  var props = ['dealname','dealstage','createdate','lula_deal_source','deal_locs_for_commit_','hubspot_owner_id'].join(',');
-
-  while (true) {
-    var url = 'https://api.hubapi.com/crm/v3/objects/deals?properties='+props+'&limit=100'+(after?'&after='+after:'');
-    var resp = await fetch(url, { headers: { 'Authorization': 'Bearer '+HS_TOKEN } });
-    if (!resp.ok) throw new Error('Deals fetch failed: '+resp.status);
-    var data = await resp.json();
-
-    (data.results||[]).forEach(function(deal) {
-      var p = deal.properties;
-      if (p.dealstage !== 'closedwon') return;
-
-      var rawDate = p.createdate ? p.createdate.split('T')[0] : today();
-      var rawStores = parseInt(p.deal_locs_for_commit_, 10);
-      if (isNaN(rawStores) || rawStores < 1) rawStores = 1;
-
-      results.push({
-        id:       deal.id,
-        date:     rawDate,
-        brand:    p.lula_deal_source || 'Unknown',
-        stores:   rawStores,
-        dealname: p.dealname || '—',
-        owner:    ownerMap[String(p.hubspot_owner_id)] || 'Unassigned'
-      });
-    });
-
-    var nextCursor = data.paging && data.paging.next && data.paging.next.after;
-    if (!nextCursor) break;
-    after = nextCursor;
-  }
-  return results;
-}
-
-async function syncFromHubSpot() {
-  if (HS_TOKEN === 'YOUR_HUBSPOT_PRIVATE_APP_TOKEN') {
-    el('hs-token-warn').style.display = 'block';
-    return;
-  }
-  el('hs-token-warn').style.display = 'none';
+// ── Data load (reads static JSON written by GitHub Actions) ───────────────────
+async function refreshData() {
   var btn = el('btn-sync');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinning">&#8635;</span> Syncing&hellip;';
-  el('sync-status').textContent = 'Fetching deals from HubSpot&hellip;';
+  btn.innerHTML = '<span class="spinning">&#8635;</span> Loading&hellip;';
+  el('sync-status').textContent = 'Fetching latest data&hellip;';
   hideErr();
 
   try {
-    var ownerMap = await fetchOwners();
-    entries = await fetchAllDeals(ownerMap);
-    lastSynced = new Date();
+    // Path relative to the dashboards/ folder — resolves to /data/hs_deals.json on GitHub Pages
+    var resp = await fetch('../data/hs_deals.json?t='+Date.now());
+    if (!resp.ok) throw new Error('Data file not found (HTTP '+resp.status+'). Has the GitHub Action run yet?');
+    var data = await resp.json();
 
-    // Cache to localStorage
+    var allDeals = data.deals || [];
+    entries = allDeals.filter(function(d) {
+      return d.stage === HS_CLOSED_STAGE || d.stage === HS_SIGNED_STAGE;
+    });
+    lastSynced = data.fetchedAt ? new Date(data.fetchedAt) : new Date();
+
     try {
       localStorage.setItem(HS_CACHE_KEY, JSON.stringify({ fetchedAt: lastSynced.toISOString(), entries: entries }));
     } catch(e) {}
 
-    el('sync-status').textContent = 'Last synced: '+lastSynced.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})
-      +' · '+entries.length+' Closed Won deal'+(entries.length===1?'':'s');
+    var nClosed = entries.filter(function(d){return d.stage===HS_CLOSED_STAGE;}).length;
+    var nSigned = entries.filter(function(d){return d.stage===HS_SIGNED_STAGE;}).length;
+    el('sync-status').textContent = 'Data as of '
+      +lastSynced.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})
+      +' · '+nClosed+' closed won · '+nSigned+' signed';
+
+    // Warn if no signed-stage deals found (likely the stage name needs updating)
+    if (allDeals.length > 0 && nSigned === 0) {
+      var stages = [...new Set(allDeals.map(function(d){return d.stage;}))].join(', ');
+      showErr('No deals matched the "'+HS_SIGNED_STAGE+'" stage. Stages found in your data: '+stages+'. Update HS_SIGNED_STAGE in the script if needed.');
+    }
+
     renderAll();
   } catch(ex) {
-    showErr('HubSpot sync failed: '+ex.message+'. Check that your HS_TOKEN is valid and has crm.objects.deals.read + crm.objects.owners.read scopes.');
-    el('sync-status').textContent = 'Sync failed';
+    showErr(ex.message);
+    el('sync-status').textContent = 'Load failed — showing cached data';
+    if (entries.length) renderAll();
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '&#8635; Sync from HubSpot';
+    btn.innerHTML = '&#8635; Refresh Data';
   }
 }
 
@@ -355,25 +333,36 @@ function loadFromCache() {
     var raw = localStorage.getItem(HS_CACHE_KEY);
     if (!raw) return false;
     var cached = JSON.parse(raw);
-    if (!cached.entries || !cached.fetchedAt) return false;
-    entries = cached.entries;
-    lastSynced = new Date(cached.fetchedAt);
-    el('sync-status').textContent = 'Cached: '+lastSynced.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})
-      +' · '+entries.length+' deal'+(entries.length===1?'':'s')+' — click Sync to refresh';
-    return true;
+    if (!cached.entries) return false;
+    entries = cached.entries.filter(function(d) {
+      return d.stage === HS_CLOSED_STAGE || d.stage === HS_SIGNED_STAGE;
+    });
+    lastSynced = cached.fetchedAt ? new Date(cached.fetchedAt) : null;
+    if (lastSynced) {
+      var nClosed = entries.filter(function(d){return d.stage===HS_CLOSED_STAGE;}).length;
+      var nSigned = entries.filter(function(d){return d.stage===HS_SIGNED_STAGE;}).length;
+      el('sync-status').textContent = 'Cached: '
+        +lastSynced.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})
+        +' · '+nClosed+' closed won · '+nSigned+' signed — click Refresh to update';
+    }
+    return entries.length > 0;
   } catch(e) { return false; }
 }
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
 function metrics() {
-  var now = new Date(), q2 = parseD(Q2_START);
+  var now = new Date(), q2end = new Date('2026-06-10T23:59:59');
+  var q2 = parseD(Q2_START);
   var daysEl = Math.max(0,(now-q2)/86400000);
-  var weeksEl = daysEl/7, weeksRem = Math.max(0,WEEKS-weeksEl);
-  var cum = entries.reduce(function(s,e){return s+e.stores;},0);
-  var todStr = today();
-  var day0 = entries.filter(function(e){return e.date===todStr;}).reduce(function(s,e){return s+e.stores;},0);
-  var mon = monday(now);
-  var week0 = entries.filter(function(e){return parseD(e.date)>=mon;}).reduce(function(s,e){return s+e.stores;},0);
+  var weeksEl = daysEl/7;
+  // Weeks remaining = exact days left until Jun 10
+  var msLeft = Math.max(0, q2end - now);
+  var weeksRem = msLeft / (7*24*60*60*1000);
+
+  var cumClosed = entries.filter(function(e){return e.stage===HS_CLOSED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
+  var cumSigned = entries.filter(function(e){return e.stage===HS_SIGNED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
+  var cum = cumClosed + cumSigned;
+
   var ago7 = fmtYMD(addDays(now,-7));
   var pace = entries.filter(function(e){return e.date>=ago7;}).reduce(function(s,e){return s+e.stores;},0);
   var needed = Math.max(0,GOAL-cum);
@@ -383,10 +372,9 @@ function metrics() {
   var projDate = pace>0 ? addDays(now,wToGoal*7) : null;
   var wBehind = isFinite(wToGoal) ? wToGoal-weeksRem : Infinity;
   var pct = Math.min(100,Math.round(cum/GOAL*100));
-  var status = pace>=REQ_PACE ? 'on_track' : pace>=8 ? 'at_risk' : 'behind';
-  return {weeksRem:weeksRem,cum:cum,day0:day0,week0:week0,pace:pace,needed:needed,
-          reqPace:reqPace,projTotal:projTotal,wToGoal:wToGoal,projDate:projDate,
-          wBehind:wBehind,pct:pct,status:status};
+  var status = pace>=REQ_PACE ? 'on_track' : pace>=REQ_PACE*0.75 ? 'at_risk' : 'behind';
+  return {weeksRem,cum,cumClosed,cumSigned,pace,needed,
+          reqPace,projTotal,wToGoal,projDate,wBehind,pct,status};
 }
 
 // ── Chart data ────────────────────────────────────────────────────────────────
@@ -407,12 +395,12 @@ function cumulData() {
   if(!entries.length) return [];
   var q2 = parseD(Q2_START);
   var sorted = entries.slice().sort(function(a,b){return a.date<b.date?-1:1;});
-  var pts = [{wk:0,actual:0,req:0}], run = 0;
+  var pts = [{wk:0,actual:0}], run = 0;
   sorted.forEach(function(e){
     run+=e.stores;
     var days = Math.max(0,(parseD(e.date)-q2)/86400000);
     var wk = parseFloat((days/7).toFixed(2));
-    pts.push({wk:wk,actual:run,req:parseFloat(Math.min(GOAL,REQ_PACE*wk).toFixed(1))});
+    pts.push({wk:wk,actual:run});
   });
   return pts;
 }
@@ -426,14 +414,19 @@ function renderAll() {
 }
 
 function renderProg(m) {
-  el('prog-fill').style.width = m.pct+'%';
+  var closedPct = Math.min(100,(m.cumClosed/GOAL)*100);
+  var signedPct = Math.min(100-closedPct,(m.cumSigned/GOAL)*100);
+  el('prog-fill-closed').style.width = closedPct.toFixed(2)+'%';
+  el('prog-fill-signed').style.width = signedPct.toFixed(2)+'%';
   el('prog-text').textContent = m.cum+' of '+GOAL+' stores signed';
   el('prog-pct').textContent = m.pct+'%';
+  el('leg-closed').textContent = m.cumClosed+' Closed Won';
+  el('leg-signed').textContent = m.cumSigned+' Signed (Pending)';
 }
 
 function renderStats(m) {
-  el('s-today').textContent = m.day0;
-  el('s-week').textContent = m.week0;
+  el('s-closed').textContent = m.cumClosed;
+  el('s-signed').textContent = m.cumSigned;
   el('s-total').textContent = m.cum;
   el('s-remaining').textContent = m.needed+' remaining to goal';
   el('s-weeks').textContent = m.weeksRem.toFixed(1);
@@ -457,10 +450,10 @@ function renderStatus(m) {
 function renderProj(m) {
   var txt;
   if(!entries.length) {
-    txt = 'No data yet. Click “Sync from HubSpot” to load Closed Won deals.';
+    txt = 'No data yet. Click “Refresh Data” to load Closed Won and Signed deals from HubSpot.';
   } else if(m.status==='on_track') {
     var ds = m.projDate ? m.projDate.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : '—';
-    txt = 'At your current pace of '+m.pace+' stores/week, you are on track to hit '+GOAL+' stores by '+ds+' — within the '+WEEKS+'-week goal.';
+    txt = 'At your current pace of '+m.pace+' stores/week, you are on track to hit '+GOAL+' stores by '+ds+'.';
   } else {
     var late = isFinite(m.wBehind)&&m.wBehind>0 ? m.wBehind.toFixed(1)+' weeks late' : 'behind schedule';
     var extra = isFinite(m.reqPace) ? Math.max(0,Math.ceil(m.reqPace-m.pace)) : '—';
@@ -479,7 +472,7 @@ function renderProj(m) {
 // ── SVG Bar chart ─────────────────────────────────────────────────────────────
 function renderBars() {
   var c = el('chart-bars'), data = weeklyData();
-  if(!data.length){c.innerHTML='<div class="chart-empty">Sync from HubSpot to see weekly chart</div>';return;}
+  if(!data.length){c.innerHTML='<div class="chart-empty">Refresh to see weekly chart</div>';return;}
   var W=460,H=160,pT=12,pB=32,pL=32,pR=40;
   var pW=W-pL-pR, pH=H-pT-pB;
   var maxV=Math.max.apply(null,data.map(function(d){return d.v;}));
@@ -487,7 +480,6 @@ function renderBars() {
   var n=data.length, bW=Math.min(40,(pW/n)*0.65), gap=(pW-bW*n)/(n+1);
   var sx=function(i){return pL+gap*(i+1)+bW*i;};
   var sy=function(v){return pT+pH-(v/maxV)*pH;};
-
   var bars='', xlbls='', ylbls='';
   data.forEach(function(d,i){
     var x=sx(i).toFixed(1), y=sy(d.v).toFixed(1), bH=((d.v/maxV)*pH).toFixed(1);
@@ -497,7 +489,7 @@ function renderBars() {
   });
   var refY=sy(REQ_PACE).toFixed(1);
   var refLine='<line x1="'+pL+'" y1="'+refY+'" x2="'+(W-pR)+'" y2="'+refY+'" stroke="#DE4990" stroke-dasharray="5 3" stroke-width="1.5"/>'
-    +'<text x="'+(W-pR+3)+'" y="'+(parseFloat(refY)+3).toFixed(1)+'" font-size="9" fill="#DE4990">10.7</text>';
+    +'<text x="'+(W-pR+3)+'" y="'+(parseFloat(refY)+3).toFixed(1)+'" font-size="9" fill="#DE4990">15</text>';
   [0,Math.round(maxV/2),Math.round(maxV)].forEach(function(v){
     var y=sy(v).toFixed(1);
     ylbls+='<text x="'+(pL-4)+'" y="'+(parseFloat(y)+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--muted)">'+v+'</text>';
@@ -508,7 +500,7 @@ function renderBars() {
 // ── SVG Donut chart ───────────────────────────────────────────────────────────
 function renderDonut() {
   var c = el('chart-donut'), data = brandData();
-  if(!data.length){c.innerHTML='<div class="chart-empty">Sync from HubSpot to see brand breakdown</div>';return;}
+  if(!data.length){c.innerHTML='<div class="chart-empty">Refresh to see brand breakdown</div>';return;}
   var total=data.reduce(function(s,d){return s+d.v;},0);
   var R=44, cx=60, cy=60, circ=2*Math.PI*R;
   var segs='', offset=-0.25;
@@ -531,15 +523,14 @@ function renderDonut() {
 // ── SVG Line chart ────────────────────────────────────────────────────────────
 function renderLine() {
   var c = el('chart-line'), data = cumulData();
-  if(data.length<=1){c.innerHTML='<div class="chart-empty">Sync from HubSpot to see progress line</div>';return;}
+  if(data.length<=1){c.innerHTML='<div class="chart-empty">Refresh to see progress line</div>';return;}
   var W=700,H=180,pT=10,pB=30,pL=36,pR=44;
   var pW=W-pL-pR, pH=H-pT-pB;
   var sx=function(wk){return pL+(wk/WEEKS)*pW;};
   var sy=function(v){return pT+pH-(v/GOAL)*pH;};
-
   var grid='';
   [25,50,75,100].forEach(function(v){
-    var y=sy(v).toFixed(1);
+    var y=sy(v/100*GOAL).toFixed(1);
     grid+='<line x1="'+pL+'" y1="'+y+'" x2="'+(W-pR)+'" y2="'+y+'" stroke="#EDE8F5" stroke-width="0.5"/>';
   });
   var xt='';
@@ -549,7 +540,7 @@ function renderLine() {
       +'<text x="'+x+'" y="'+(H-pB+14)+'" text-anchor="middle" font-size="9" fill="var(--muted)">W'+w+'</text>';
   });
   var yt='';
-  [0,25,50,75,107].forEach(function(v){
+  [0,50,100,150].forEach(function(v){
     var y=sy(v).toFixed(1);
     yt+='<text x="'+(pL-5)+'" y="'+(parseFloat(y)+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--muted)">'+v+'</text>';
   });
@@ -560,18 +551,17 @@ function renderLine() {
   var pts=data.map(function(d){return sx(d.wk).toFixed(1)+','+sy(d.actual).toFixed(1);}).join(' ');
   var actualLine='<polyline points="'+pts+'" fill="none" stroke="#DE4990" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
   var dots=data.slice(1).map(function(d){return '<circle cx="'+sx(d.wk).toFixed(1)+'" cy="'+sy(d.actual).toFixed(1)+'" r="3" fill="#DE4990"/>';}).join('');
-
   var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+grid+xt+yt+goalLine+reqLine+actualLine+dots+'</svg>';
   var lgnd='<div class="chart-legend">'
     +'<span><span style="display:inline-block;width:18px;height:3px;background:#DE4990;vertical-align:middle;border-radius:2px;margin-right:4px"></span>Actual</span>'
     +'<span><span style="display:inline-block;width:18px;border-top:2px dashed #AEAEAE;vertical-align:middle;margin-right:4px"></span>Required Pace</span>'
-    +'<span><span style="display:inline-block;width:18px;border-top:2px dashed #10B981;vertical-align:middle;margin-right:4px"></span>Goal (107)</span>'
+    +'<span><span style="display:inline-block;width:18px;border-top:2px dashed #10B981;vertical-align:middle;margin-right:4px"></span>Goal (150)</span>'
     +'</div>';
   c.innerHTML=svg+lgnd;
 }
 
 // ── Table ─────────────────────────────────────────────────────────────────────
-function sorted() {
+function sortedEntries() {
   return entries.slice().sort(function(a,b){
     var av=sortKey==='stores'?Number(a[sortKey]):(a[sortKey]||'');
     var bv=sortKey==='stores'?Number(b[sortKey]):(b[sortKey]||'');
@@ -583,18 +573,21 @@ function sorted() {
 function renderTable() {
   var m=metrics();
   el('tbl-count').textContent=entries.length+' deal'+(entries.length===1?'':'s')+' · '+m.cum+' total stores';
-  var cols=[['date','Date'],['dealname','Deal Name'],['brand','Brand'],['stores','Stores'],['owner','Owner']];
+  var cols=[['date','Date'],['stage','Status'],['dealname','Deal Name'],['brand','Brand'],['stores','Stores'],['owner','Owner']];
   var thead='<tr>'+cols.map(function(c){
     var arr=sortKey===c[0]?(sortDir==='asc'?' ↑':' ↓'):'';
     return '<th onclick="sortBy(\''+c[0]+'\')">'+c[1]+arr+'</th>';
   }).join('')+'</tr>';
-  var rows=sorted();
+  var rows=sortedEntries();
   var tbody=rows.length===0
-    ? '<tr><td colspan="5" class="tbl-empty">No data. Click &ldquo;Sync from HubSpot&rdquo; to load Closed Won deals.</td></tr>'
+    ? '<tr><td colspan="6" class="tbl-empty">No deals loaded. Click “Refresh Data” above.</td></tr>'
     : rows.map(function(e){
+        var stageCls = e.stage===HS_CLOSED_STAGE ? 'pill-closed' : 'pill-signed';
+        var stageLbl = e.stage===HS_CLOSED_STAGE ? 'Closed Won' : 'Signed';
         return '<tr>'
           +'<td style="white-space:nowrap">'+fmtFull(e.date)+'</td>'
-          +'<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e.dealname+'</td>'
+          +'<td><span class="pill '+stageCls+'">'+stageLbl+'</span></td>'
+          +'<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e.dealname+'</td>'
           +'<td><span class="pill">'+e.brand+'</span></td>'
           +'<td style="font-weight:700;color:var(--dark);font-size:15px">'+e.stores+'</td>'
           +'<td style="color:var(--muted)">'+e.owner+'</td>'
@@ -603,7 +596,6 @@ function renderTable() {
   el('tbl-head').innerHTML=thead;
   el('tbl-body').innerHTML=tbody;
 }
-
 function sortBy(k) {
   if(sortKey===k) sortDir=sortDir==='asc'?'desc':'asc';
   else{sortKey=k;sortDir='asc';}
@@ -612,8 +604,10 @@ function sortBy(k) {
 
 // ── Export ────────────────────────────────────────────────────────────────────
 function exportCSV() {
-  var rows=[['Date','Deal Name','Brand','Stores','Owner']];
-  sorted().forEach(function(e){rows.push([e.date,e.dealname,e.brand,e.stores,e.owner]);});
+  var rows=[['Date','Status','Deal Name','Brand','Stores','Owner']];
+  sortedEntries().forEach(function(e){
+    rows.push([e.date, e.stage===HS_CLOSED_STAGE?'Closed Won':'Signed', e.dealname, e.brand, e.stores, e.owner]);
+  });
   var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
@@ -628,11 +622,8 @@ function hideErr(){el('err-banner').style.display='none';}
 // ── Init ──────────────────────────────────────────────────────────────────────
 (function(){
   el('hdr-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-  if (HS_TOKEN === 'YOUR_HUBSPOT_PRIVATE_APP_TOKEN') {
-    el('hs-token-warn').style.display = 'block';
-  }
-  var loaded = loadFromCache();
-  if (loaded) renderAll();
+  loadFromCache();
+  renderAll(); // always render so Weeks Left shows the real number
 })();
 </script>
 </body>
