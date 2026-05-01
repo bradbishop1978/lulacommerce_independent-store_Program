@@ -215,16 +215,19 @@
     <div class="sync-row">
       <div class="sync-info">
         <div class="chart-title" style="margin-bottom:0">HubSpot Data</div>
-        <div id="sync-status" class="sync-meta">Not yet loaded — click Refresh Data</div>
+        <div id="sync-status" class="sync-meta">Not yet loaded</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-p" id="btn-sync" onclick="refreshData()">&#8635; Refresh Data</button>
-        <button class="btn btn-s btn-sm" onclick="exportCSV()">Export CSV</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-p" id="btn-sync" onclick="refreshData()">&#8635; Refresh (Auto-sync)</button>
+        <label class="btn btn-s btn-sm" style="cursor:pointer">&#8593; Import HubSpot CSV
+          <input type="file" accept=".csv" style="display:none" onchange="importFromCSV(event)">
+        </label>
+        <button class="btn btn-s btn-sm" onclick="exportCSV()">&#8595; Export CSV</button>
       </div>
     </div>
-    <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6">
-      Data is synced automatically every day via GitHub Actions. Click Refresh to load the latest snapshot.
-      To trigger an immediate sync: go to the GitHub repo &rarr; Actions &rarr; <em>Sync HubSpot Deals</em> &rarr; Run workflow.
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.7">
+      <strong>Import CSV</strong> — export from HubSpot CRM &rarr; upload here. Reads columns: <em>Deal Stage, Create Date, Lula Deal Source, Deal Locs (for Commit), Deal Name, Deal owner</em>.<br>
+      <strong>Auto-sync</strong> runs daily via GitHub Actions and loads automatically on page refresh.
     </div>
   </div>
 
@@ -600,6 +603,73 @@ function sortBy(k) {
   if(sortKey===k) sortDir=sortDir==='asc'?'desc':'asc';
   else{sortKey=k;sortDir='asc';}
   renderTable();
+}
+
+// ── CSV Import (HubSpot export format) ───────────────────────────────────────
+function uid() { return 'c' + Math.random().toString(36).substr(2, 9); }
+
+function parseCSVRow(line) {
+  var result = [], cur = '', inQ = false;
+  for (var i = 0; i < line.length; i++) {
+    var c = line[i];
+    if (c === '"') {
+      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+      else { inQ = !inQ; }
+    } else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else { cur += c; }
+  }
+  result.push(cur);
+  return result;
+}
+
+function importFromCSV(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var r = new FileReader();
+  r.onload = function(ev) {
+    try {
+      var lines = ev.target.result.trim().split('\n').filter(function(l){ return l.trim(); });
+      var headers = parseCSVRow(lines[0]);
+      var col = function(row, name) { var i = headers.indexOf(name); return i >= 0 ? (row[i]||'').trim() : ''; };
+
+      var imported = lines.slice(1).map(function(line) {
+        var row = parseCSVRow(line);
+        var stage  = col(row, 'Deal Stage');
+        var date   = (col(row, 'Create Date') || '').substring(0, 10);
+        var stores = Math.max(1, parseInt(parseFloat(col(row, 'Deal Locs (for Commit)'))) || 1);
+        if (!stage || !date) return null;
+        return {
+          id:       col(row, 'Record ID') || uid(),
+          date:     date,
+          brand:    col(row, 'Lula Deal Source') || 'Unknown',
+          stores:   stores,
+          dealname: col(row, 'Deal Name') || '—',
+          owner:    col(row, 'Deal owner') || 'Unassigned',
+          stage:    stage
+        };
+      }).filter(function(d) {
+        return d && (d.stage === HS_CLOSED_STAGE || d.stage === HS_SIGNED_STAGE);
+      });
+
+      if (!imported.length) {
+        showErr('No matching deals found. CSV must contain Deal Stage values "'+HS_SIGNED_STAGE+'" or "'+HS_CLOSED_STAGE+'". Got: '
+          + [...new Set(lines.slice(1).map(function(l){ var r=parseCSVRow(l); var i=headers.indexOf('Deal Stage'); return i>=0?r[i]:'?'; }))].join(', '));
+        return;
+      }
+
+      entries = imported;
+      lastSynced = new Date();
+      try { localStorage.setItem(HS_CACHE_KEY, JSON.stringify({ fetchedAt: lastSynced.toISOString(), entries: entries })); } catch(e) {}
+
+      var nC = entries.filter(function(d){return d.stage===HS_CLOSED_STAGE;}).length;
+      var nS = entries.filter(function(d){return d.stage===HS_SIGNED_STAGE;}).length;
+      el('sync-status').textContent = 'Imported from CSV · '+entries.length+' deals ('+nC+' closed won · '+nS+' signed)';
+      hideErr();
+      renderAll();
+    } catch(ex) { showErr('CSV parse error: ' + ex.message); }
+    event.target.value = '';
+  };
+  r.readAsText(file);
 }
 
 // ── Export ────────────────────────────────────────────────────────────────────
