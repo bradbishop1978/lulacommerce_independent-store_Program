@@ -21,7 +21,24 @@ def hs_get(url):
     with urllib.request.urlopen(req) as r:
         return json.loads(r.read())
 
-# Fetch owners
+# ── Fetch pipeline stage ID → label map ───────────────────────────────────────
+print('Fetching pipeline stages...')
+stage_labels = {}
+try:
+    pipelines = hs_get('https://api.hubapi.com/crm/v3/pipelines/deals')
+    for pipeline in pipelines.get('results', []):
+        for stage in pipeline.get('stages', []):
+            stage_labels[str(stage['id'])] = stage.get('label', stage['id'])
+    print(f'  {len(stage_labels)} stages mapped')
+    print('  Stage map:', json.dumps(stage_labels, indent=2))
+except Exception as e:
+    print(f'  Warning: could not fetch pipeline stages ({e}) — stage IDs will be used as-is')
+
+def resolve_stage(stage_id):
+    """Return human-readable label for a stage ID, or the ID itself as fallback."""
+    return stage_labels.get(str(stage_id), str(stage_id)) if stage_id else ''
+
+# ── Fetch owners (id → full name) ────────────────────────────────────────────
 print('Fetching owners...')
 owners_data = hs_get('https://api.hubapi.com/crm/v3/owners?limit=100')
 owners = {}
@@ -32,7 +49,7 @@ for o in owners_data.get('results', []):
     owners[str(o['id'])] = name
 print(f'  {len(owners)} owners loaded')
 
-# Fetch all deals (paginated, all stages)
+# ── Fetch all deals (paginated, all stages) ───────────────────────────────────
 PROPS = ','.join([
     'dealname', 'dealstage', 'createdate',
     'lula_deal_source', 'deal_locs_for_commit_', 'hubspot_owner_id',
@@ -57,6 +74,7 @@ while True:
             stores = 1
         raw_date = (p.get('createdate') or '')
         date = raw_date[:10] if raw_date else ''
+
         deals.append({
             'id':       d['id'],
             'date':     date,
@@ -64,7 +82,8 @@ while True:
             'stores':   stores,
             'dealname': (p.get('dealname') or '').strip() or '—',
             'owner':    owners.get(str(p.get('hubspot_owner_id') or ''), 'Unassigned'),
-            'stage':    (p.get('dealstage') or '').strip(),
+            # Store the human-readable label, not the numeric ID
+            'stage':    resolve_stage(p.get('dealstage')),
         })
 
     after = (data.get('paging') or {}).get('next', {}).get('after')
@@ -73,6 +92,7 @@ while True:
 
 print(f'  {len(deals)} total deals fetched')
 
+# ── Write output ──────────────────────────────────────────────────────────────
 output = {
     'fetchedAt': datetime.datetime.utcnow().isoformat() + 'Z',
     'deals': deals,
@@ -87,4 +107,4 @@ print(f'Saved data/hs_deals.json ({len(deals)} deals)')
 stages = {}
 for d in deals:
     stages[d['stage']] = stages.get(d['stage'], 0) + 1
-print('Stage breakdown:', json.dumps(stages, indent=2))
+print('Stage breakdown (by label):', json.dumps(stages, indent=2))
