@@ -20,14 +20,12 @@ jobs:
           HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
         run: python3 scripts/fetch-deals.py
 
-      - name: Commit updated data file
-        run: |
-        git config user.name  "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add data/hs_deals.json
-        git diff --staged --quiet && echo "No changes to commit" || (
-          git fetch origin main &&
-          git rebase origin/main &&
-          git commit -m "chore: sync HubSpot deals [skip ci]" &&
-        git push
-        )
+     - name: Commit updated data file
+       run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/hs_deals.json
+          git diff --staged --quiet && echo "No changes to commit" || (
+            git commit -m "chore: sync HubSpot deals [skip ci]" &&
+            git push --force-with-lease
+          )
