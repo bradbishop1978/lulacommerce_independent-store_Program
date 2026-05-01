@@ -49,16 +49,12 @@
     .prog-pct{font-family:'Gabarito',sans-serif;font-size:18px;font-weight:800;color:var(--pink)}
     .prog-outer{height:12px;background:var(--border);border-radius:6px;overflow:hidden}
     .prog-inner{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--pink),var(--pink-light));transition:width .4s}
-    .form-label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:6px}
-    .form-input,.form-select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:#fff;outline:none}
-    .form-input:focus,.form-select:focus{border-color:var(--pink)}
-    .fgrid{display:grid;grid-template-columns:160px 220px 120px 1fr;gap:12px;align-items:end}
-    .factions{display:flex;gap:8px;margin-top:12px}
     .btn{padding:10px 20px;border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
     .btn-p{background:var(--pink);color:#fff}.btn-p:hover{background:#C73F7E}
     .btn-s{background:var(--pink-pale);color:var(--dark);border:1.5px solid var(--border)}.btn-s:hover{background:#F0E8FF}
     .btn-d{background:#FEE2E2;color:#991B1B}.btn-d:hover{background:#FECACA}
     .btn-sm{padding:5px 12px;font-size:12px}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
     .tbl-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
     .tbl-count{font-size:13px;color:var(--muted);flex:1}
     .tbl-wrap{overflow-x:auto}
@@ -77,16 +73,19 @@
     .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
     .chart-legend{display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--muted)}
     .section-title{font-family:'Gabarito',sans-serif;font-size:14px;font-weight:700;color:var(--dark)}
+    .sync-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .sync-info{display:flex;flex-direction:column;gap:4px}
+    .sync-meta{font-size:12px;color:var(--muted)}
+    .spinning{animation:spin .8s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
     @media(max-width:768px){
       .grid4{grid-template-columns:repeat(2,1fr)}
       .grid2{grid-template-columns:1fr}
-      .fgrid{grid-template-columns:1fr 1fr}
       .main{padding:16px}
       .header{padding:12px 16px}
     }
     @media(max-width:480px){
       .grid4{grid-template-columns:1fr}
-      .fgrid{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -174,7 +173,7 @@
     </div>
     <div class="proj-card">
       <div class="section-title" style="margin-bottom:12px">Projection</div>
-      <div id="proj-text" class="proj-sentence">No entries yet. Add your first store signing below.</div>
+      <div id="proj-text" class="proj-sentence">No data yet. Click &ldquo;Sync from HubSpot&rdquo; below to load Closed Won deals.</div>
       <div class="proj-grid">
         <div><div class="proj-lbl">Projected Date</div><div id="proj-date" class="proj-val">N/A</div></div>
         <div><div class="proj-lbl">Weeks to Goal</div><div id="proj-weeks" class="proj-val">N/A</div></div>
@@ -187,61 +186,41 @@
   <div class="grid2">
     <div class="card">
       <div class="chart-title">Weekly Signings</div>
-      <div id="chart-bars"><div class="chart-empty">Add entries to see weekly chart</div></div>
+      <div id="chart-bars"><div class="chart-empty">Sync from HubSpot to see weekly chart</div></div>
     </div>
     <div class="card">
       <div class="chart-title">By Brand</div>
-      <div id="chart-donut"><div class="chart-empty">Add entries to see brand breakdown</div></div>
+      <div id="chart-donut"><div class="chart-empty">Sync from HubSpot to see brand breakdown</div></div>
     </div>
   </div>
 
   <!-- Line chart -->
   <div class="card gap">
     <div class="chart-title">Cumulative Progress vs Required Pace</div>
-    <div id="chart-line"><div class="chart-empty">Add entries to see progress line</div></div>
+    <div id="chart-line"><div class="chart-empty">Sync from HubSpot to see progress line</div></div>
   </div>
 
-  <!-- Entry form -->
-  <div class="card gap" id="entry-form">
-    <div id="form-title" class="chart-title" style="margin-bottom:16px">+ Add Store Signings</div>
-    <form id="the-form" onsubmit="submitForm(event)">
-      <div class="fgrid">
-        <div>
-          <label class="form-label">Date *</label>
-          <input type="date" id="f-date" class="form-input" required>
-        </div>
-        <div>
-          <label class="form-label">Brand *</label>
-          <select id="f-brand" class="form-select"></select>
-        </div>
-        <div>
-          <label class="form-label">Stores Signed *</label>
-          <input type="number" id="f-stores" class="form-input" min="1" step="1" placeholder="0" required>
-        </div>
-        <div>
-          <label class="form-label">Notes</label>
-          <input type="text" id="f-notes" class="form-input" placeholder="Optional&hellip;">
-        </div>
+  <!-- HubSpot Sync -->
+  <div class="card gap">
+    <div class="sync-row">
+      <div class="sync-info">
+        <div class="chart-title" style="margin-bottom:0">HubSpot Data</div>
+        <div id="sync-status" class="sync-meta">Not yet synced</div>
       </div>
-      <div class="factions">
-        <button type="submit" id="btn-add" class="btn btn-p">+ Add Entry</button>
-        <button type="button" id="btn-cancel" class="btn btn-s" onclick="cancelEdit()" style="display:none">Cancel</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-p" id="btn-sync" onclick="syncFromHubSpot()">&#8635; Sync from HubSpot</button>
+        <button class="btn btn-s btn-sm" onclick="exportCSV()">Export CSV</button>
       </div>
-    </form>
+    </div>
+    <div id="hs-token-warn" style="margin-top:12px;padding:10px 14px;background:#FEF3C7;border-radius:8px;font-size:12px;color:#92400E;display:none">
+      &#9888; Add your HubSpot Private App token: open this file and set <code style="background:#FDE68A;padding:1px 5px;border-radius:3px">HS_TOKEN</code> at the top of the &lt;script&gt; block.
+    </div>
   </div>
 
   <!-- Table -->
   <div class="card">
     <div class="tbl-toolbar">
-      <span id="tbl-count" class="tbl-count">0 entries</span>
-      <button class="btn btn-s btn-sm" onclick="exportCSV()">Export CSV</button>
-      <label class="btn btn-s btn-sm" style="cursor:pointer">Import CSV<input type="file" accept=".csv" style="display:none" onchange="importCSV(event)"></label>
-      <button id="btn-clear" class="btn btn-d btn-sm" onclick="clearAll()">Clear All</button>
-      <span id="clear-confirm" style="display:none;align-items:center;gap:6px">
-        <span style="font-size:12px;color:var(--coral);font-weight:600">Sure?</span>
-        <button class="btn btn-d btn-sm" onclick="confirmClear()">Yes, clear</button>
-        <button class="btn btn-s btn-sm" onclick="cancelClear()">Cancel</button>
-      </span>
+      <span id="tbl-count" class="tbl-count">0 deals</span>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -257,23 +236,22 @@
 <script>
 'use strict';
 
-// ── Constants ────────────────────────────────────────────────────────────────
-var BRANDS = ["Krispy Krunchy Chicken","Chester's Chicken","Godfather's Pizza","Champs Chicken","Simple Simon's","Genuine Broasters"];
+// ── HubSpot config ────────────────────────────────────────────────────────────
+// Create a Private App in HubSpot → Settings → Integrations → Private Apps
+// Scopes needed: crm.objects.deals.read, crm.objects.owners.read
+var HS_TOKEN  = 'pat-na1-f5cb4d8a-5284-43af-9504-3c52446a9280';
+var HS_CACHE_KEY = 'lula_hs_deals_cache';
+
+// ── Goal constants ────────────────────────────────────────────────────────────
 var GOAL = 107, WEEKS = 10, Q2_START = '2026-04-01', REQ_PACE = 10.7;
-var KEY = 'lula_store_entries';
 var COLORS = ['#DE4990','#2C023B','#EB92BD','#B799FF','#F59E0B','#10B981'];
 
-// ── State ────────────────────────────────────────────────────────────────────
-var entries = [];
-var editingId = null;
+// ── State ─────────────────────────────────────────────────────────────────────
+var entries = [];   // [{id, date, brand, stores, dealname, owner}]
+var lastSynced = null;
 var sortKey = 'date', sortDir = 'desc';
 
-// ── Data helpers ─────────────────────────────────────────────────────────────
-function load() {
-  try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { return []; }
-}
-function save() { localStorage.setItem(KEY, JSON.stringify(entries)); }
-function uid() { return Math.random().toString(36).substr(2,9); }
+// ── Date helpers ──────────────────────────────────────────────────────────────
 function today() {
   var d = new Date();
   return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
@@ -289,7 +267,104 @@ function monday(d) {
 }
 function addDays(d, n) { var r = new Date(d); r.setDate(r.getDate()+n); return r; }
 
-// ── Metrics ──────────────────────────────────────────────────────────────────
+// ── HubSpot API ───────────────────────────────────────────────────────────────
+async function fetchOwners() {
+  var resp = await fetch('https://api.hubapi.com/crm/v3/owners?limit=100', {
+    headers: { 'Authorization': 'Bearer '+HS_TOKEN }
+  });
+  if (!resp.ok) throw new Error('Owners fetch failed: '+resp.status);
+  var data = await resp.json();
+  var map = {};
+  (data.results||[]).forEach(function(o) {
+    map[String(o.id)] = ((o.firstName||'')+' '+(o.lastName||'')).trim() || o.email || String(o.id);
+  });
+  return map;
+}
+
+async function fetchAllDeals(ownerMap) {
+  var results = [], after = null;
+  var props = ['dealname','dealstage','createdate','lula_deal_source','deal_locs_for_commit_','hubspot_owner_id'].join(',');
+
+  while (true) {
+    var url = 'https://api.hubapi.com/crm/v3/objects/deals?properties='+props+'&limit=100'+(after?'&after='+after:'');
+    var resp = await fetch(url, { headers: { 'Authorization': 'Bearer '+HS_TOKEN } });
+    if (!resp.ok) throw new Error('Deals fetch failed: '+resp.status);
+    var data = await resp.json();
+
+    (data.results||[]).forEach(function(deal) {
+      var p = deal.properties;
+      if (p.dealstage !== 'closedwon') return;
+
+      var rawDate = p.createdate ? p.createdate.split('T')[0] : today();
+      var rawStores = parseInt(p.deal_locs_for_commit_, 10);
+      if (isNaN(rawStores) || rawStores < 1) rawStores = 1;
+
+      results.push({
+        id:       deal.id,
+        date:     rawDate,
+        brand:    p.lula_deal_source || 'Unknown',
+        stores:   rawStores,
+        dealname: p.dealname || '—',
+        owner:    ownerMap[String(p.hubspot_owner_id)] || 'Unassigned'
+      });
+    });
+
+    var nextCursor = data.paging && data.paging.next && data.paging.next.after;
+    if (!nextCursor) break;
+    after = nextCursor;
+  }
+  return results;
+}
+
+async function syncFromHubSpot() {
+  if (HS_TOKEN === 'YOUR_HUBSPOT_PRIVATE_APP_TOKEN') {
+    el('hs-token-warn').style.display = 'block';
+    return;
+  }
+  el('hs-token-warn').style.display = 'none';
+  var btn = el('btn-sync');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinning">&#8635;</span> Syncing&hellip;';
+  el('sync-status').textContent = 'Fetching deals from HubSpot&hellip;';
+  hideErr();
+
+  try {
+    var ownerMap = await fetchOwners();
+    entries = await fetchAllDeals(ownerMap);
+    lastSynced = new Date();
+
+    // Cache to localStorage
+    try {
+      localStorage.setItem(HS_CACHE_KEY, JSON.stringify({ fetchedAt: lastSynced.toISOString(), entries: entries }));
+    } catch(e) {}
+
+    el('sync-status').textContent = 'Last synced: '+lastSynced.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})
+      +' · '+entries.length+' Closed Won deal'+(entries.length===1?'':'s');
+    renderAll();
+  } catch(ex) {
+    showErr('HubSpot sync failed: '+ex.message+'. Check that your HS_TOKEN is valid and has crm.objects.deals.read + crm.objects.owners.read scopes.');
+    el('sync-status').textContent = 'Sync failed';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '&#8635; Sync from HubSpot';
+  }
+}
+
+function loadFromCache() {
+  try {
+    var raw = localStorage.getItem(HS_CACHE_KEY);
+    if (!raw) return false;
+    var cached = JSON.parse(raw);
+    if (!cached.entries || !cached.fetchedAt) return false;
+    entries = cached.entries;
+    lastSynced = new Date(cached.fetchedAt);
+    el('sync-status').textContent = 'Cached: '+lastSynced.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})
+      +' · '+entries.length+' deal'+(entries.length===1?'':'s')+' — click Sync to refresh';
+    return true;
+  } catch(e) { return false; }
+}
+
+// ── Metrics ───────────────────────────────────────────────────────────────────
 function metrics() {
   var now = new Date(), q2 = parseD(Q2_START);
   var daysEl = Math.max(0,(now-q2)/86400000);
@@ -314,7 +389,7 @@ function metrics() {
           wBehind:wBehind,pct:pct,status:status};
 }
 
-// ── Chart data ───────────────────────────────────────────────────────────────
+// ── Chart data ────────────────────────────────────────────────────────────────
 function weeklyData() {
   var wks = {};
   entries.forEach(function(e){
@@ -342,7 +417,7 @@ function cumulData() {
   return pts;
 }
 
-// ── Render all ───────────────────────────────────────────────────────────────
+// ── Render all ────────────────────────────────────────────────────────────────
 function renderAll() {
   var m = metrics();
   renderProg(m); renderStats(m); renderStatus(m); renderProj(m);
@@ -382,7 +457,7 @@ function renderStatus(m) {
 function renderProj(m) {
   var txt;
   if(!entries.length) {
-    txt = 'No entries yet. Add your first store signing below.';
+    txt = 'No data yet. Click “Sync from HubSpot” to load Closed Won deals.';
   } else if(m.status==='on_track') {
     var ds = m.projDate ? m.projDate.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : '—';
     txt = 'At your current pace of '+m.pace+' stores/week, you are on track to hit '+GOAL+' stores by '+ds+' — within the '+WEEKS+'-week goal.';
@@ -401,10 +476,10 @@ function renderProj(m) {
   } else { abEl.textContent='N/A'; abEl.style.color='var(--dark)'; }
 }
 
-// ── SVG Bar chart ────────────────────────────────────────────────────────────
+// ── SVG Bar chart ─────────────────────────────────────────────────────────────
 function renderBars() {
   var c = el('chart-bars'), data = weeklyData();
-  if(!data.length){c.innerHTML='<div class="chart-empty">Add entries to see weekly chart</div>';return;}
+  if(!data.length){c.innerHTML='<div class="chart-empty">Sync from HubSpot to see weekly chart</div>';return;}
   var W=460,H=160,pT=12,pB=32,pL=32,pR=40;
   var pW=W-pL-pR, pH=H-pT-pB;
   var maxV=Math.max.apply(null,data.map(function(d){return d.v;}));
@@ -430,10 +505,10 @@ function renderBars() {
   c.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+ylbls+bars+refLine+xlbls+'</svg>';
 }
 
-// ── SVG Donut chart ──────────────────────────────────────────────────────────
+// ── SVG Donut chart ───────────────────────────────────────────────────────────
 function renderDonut() {
   var c = el('chart-donut'), data = brandData();
-  if(!data.length){c.innerHTML='<div class="chart-empty">Add entries to see brand breakdown</div>';return;}
+  if(!data.length){c.innerHTML='<div class="chart-empty">Sync from HubSpot to see brand breakdown</div>';return;}
   var total=data.reduce(function(s,d){return s+d.v;},0);
   var R=44, cx=60, cy=60, circ=2*Math.PI*R;
   var segs='', offset=-0.25;
@@ -453,44 +528,37 @@ function renderDonut() {
     +'</svg><div class="legend">'+legend+'</div>';
 }
 
-// ── SVG Line chart ───────────────────────────────────────────────────────────
+// ── SVG Line chart ────────────────────────────────────────────────────────────
 function renderLine() {
   var c = el('chart-line'), data = cumulData();
-  if(data.length<=1){c.innerHTML='<div class="chart-empty">Add entries to see progress line</div>';return;}
+  if(data.length<=1){c.innerHTML='<div class="chart-empty">Sync from HubSpot to see progress line</div>';return;}
   var W=700,H=180,pT=10,pB=30,pL=36,pR=44;
   var pW=W-pL-pR, pH=H-pT-pB;
   var sx=function(wk){return pL+(wk/WEEKS)*pW;};
   var sy=function(v){return pT+pH-(v/GOAL)*pH;};
 
-  // grid
   var grid='';
   [25,50,75,100].forEach(function(v){
     var y=sy(v).toFixed(1);
     grid+='<line x1="'+pL+'" y1="'+y+'" x2="'+(W-pR)+'" y2="'+y+'" stroke="#EDE8F5" stroke-width="0.5"/>';
   });
-  // x ticks
   var xt='';
   [0,2,4,6,8,10].forEach(function(w){
     var x=sx(w).toFixed(1);
     xt+='<line x1="'+x+'" y1="'+(H-pB)+'" x2="'+x+'" y2="'+(H-pB+4)+'" stroke="#EDE8F5"/>'
       +'<text x="'+x+'" y="'+(H-pB+14)+'" text-anchor="middle" font-size="9" fill="var(--muted)">W'+w+'</text>';
   });
-  // y ticks
   var yt='';
   [0,25,50,75,107].forEach(function(v){
     var y=sy(v).toFixed(1);
     yt+='<text x="'+(pL-5)+'" y="'+(parseFloat(y)+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--muted)">'+v+'</text>';
   });
-  // goal line
   var gy=sy(GOAL).toFixed(1);
   var goalLine='<line x1="'+pL+'" y1="'+gy+'" x2="'+(W-pR)+'" y2="'+gy+'" stroke="#10B981" stroke-dasharray="5 3" stroke-width="1"/>'
     +'<text x="'+(W-pR+3)+'" y="'+(parseFloat(gy)+3).toFixed(1)+'" font-size="9" fill="#10B981">'+GOAL+'</text>';
-  // required pace line (straight 0→GOAL over 10 weeks)
   var reqLine='<line x1="'+sx(0).toFixed(1)+'" y1="'+sy(0).toFixed(1)+'" x2="'+sx(10).toFixed(1)+'" y2="'+sy(GOAL).toFixed(1)+'" stroke="#AEAEAE" stroke-dasharray="6 3" stroke-width="1.5"/>';
-  // actual polyline
   var pts=data.map(function(d){return sx(d.wk).toFixed(1)+','+sy(d.actual).toFixed(1);}).join(' ');
   var actualLine='<polyline points="'+pts+'" fill="none" stroke="#DE4990" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-  // dots on actual
   var dots=data.slice(1).map(function(d){return '<circle cx="'+sx(d.wk).toFixed(1)+'" cy="'+sy(d.actual).toFixed(1)+'" r="3" fill="#DE4990"/>';}).join('');
 
   var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+grid+xt+yt+goalLine+reqLine+actualLine+dots+'</svg>';
@@ -502,7 +570,7 @@ function renderLine() {
   c.innerHTML=svg+lgnd;
 }
 
-// ── Table ────────────────────────────────────────────────────────────────────
+// ── Table ─────────────────────────────────────────────────────────────────────
 function sorted() {
   return entries.slice().sort(function(a,b){
     var av=sortKey==='stores'?Number(a[sortKey]):(a[sortKey]||'');
@@ -514,141 +582,57 @@ function sorted() {
 }
 function renderTable() {
   var m=metrics();
-  el('tbl-count').textContent=entries.length+' '+(entries.length===1?'entry':'entries')+' · '+m.cum+' total stores';
-  var cols=[['date','Date'],['brand','Brand'],['stores','Stores'],['notes','Notes']];
+  el('tbl-count').textContent=entries.length+' deal'+(entries.length===1?'':'s')+' · '+m.cum+' total stores';
+  var cols=[['date','Date'],['dealname','Deal Name'],['brand','Brand'],['stores','Stores'],['owner','Owner']];
   var thead='<tr>'+cols.map(function(c){
     var arr=sortKey===c[0]?(sortDir==='asc'?' ↑':' ↓'):'';
     return '<th onclick="sortBy(\''+c[0]+'\')">'+c[1]+arr+'</th>';
-  }).join('')+'<th>Actions</th></tr>';
+  }).join('')+'</tr>';
   var rows=sorted();
   var tbody=rows.length===0
-    ? '<tr><td colspan="5" class="tbl-empty">No entries yet. Add your first store signing above.</td></tr>'
+    ? '<tr><td colspan="5" class="tbl-empty">No data. Click &ldquo;Sync from HubSpot&rdquo; to load Closed Won deals.</td></tr>'
     : rows.map(function(e){
         return '<tr>'
           +'<td style="white-space:nowrap">'+fmtFull(e.date)+'</td>'
+          +'<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e.dealname+'</td>'
           +'<td><span class="pill">'+e.brand+'</span></td>'
           +'<td style="font-weight:700;color:var(--dark);font-size:15px">'+e.stores+'</td>'
-          +'<td style="color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(e.notes||'&mdash;')+'</td>'
-          +'<td><div style="display:flex;gap:6px">'
-            +'<button class="btn btn-s btn-sm" onclick="editEntry(\''+e.id+'\')">Edit</button>'
-            +'<button class="btn btn-d btn-sm" onclick="delEntry(\''+e.id+'\')">Delete</button>'
-          +'</div></td>'
+          +'<td style="color:var(--muted)">'+e.owner+'</td>'
           +'</tr>';
       }).join('');
   el('tbl-head').innerHTML=thead;
   el('tbl-body').innerHTML=tbody;
 }
 
-// ── Form handlers ────────────────────────────────────────────────────────────
-function submitForm(e) {
-  e.preventDefault();
-  var date=el('f-date').value, brand=el('f-brand').value;
-  var stores=parseInt(el('f-stores').value,10), notes=el('f-notes').value;
-  if(!date||!brand||isNaN(stores)||stores<1){showErr('Fill in all required fields (date, brand, stores ≥ 1).');return;}
-  hideErr();
-  if(editingId) {
-    var idx=entries.findIndex(function(e){return e.id===editingId;});
-    if(idx>=0) entries[idx]={id:editingId,date:date,brand:brand,stores:stores,notes:notes};
-    editingId=null;
-    el('form-title').textContent='+ Add Store Signings';
-    el('btn-add').textContent='+ Add Entry';
-    el('btn-cancel').style.display='none';
-  } else {
-    entries.push({id:uid(),date:date,brand:brand,stores:stores,notes:notes});
-  }
-  resetForm(); save(); renderAll();
-}
-function resetForm() {
-  el('f-date').value=today();
-  el('f-brand').value=BRANDS[0];
-  el('f-stores').value='';
-  el('f-notes').value='';
-}
-function editEntry(id) {
-  var e=entries.find(function(e){return e.id===id;});
-  if(!e) return;
-  editingId=id;
-  el('f-date').value=e.date; el('f-brand').value=e.brand;
-  el('f-stores').value=e.stores; el('f-notes').value=e.notes||'';
-  el('form-title').textContent='✏ Edit Entry';
-  el('btn-add').textContent='Save Changes';
-  el('btn-cancel').style.display='inline-flex';
-  el('entry-form').scrollIntoView({behavior:'smooth',block:'start'});
-}
-function cancelEdit() {
-  editingId=null; resetForm();
-  el('form-title').textContent='+ Add Store Signings';
-  el('btn-add').textContent='+ Add Entry';
-  el('btn-cancel').style.display='none';
-}
-function delEntry(id) {
-  entries=entries.filter(function(e){return e.id!==id;});
-  if(editingId===id) cancelEdit();
-  save(); renderAll();
-}
 function sortBy(k) {
   if(sortKey===k) sortDir=sortDir==='asc'?'desc':'asc';
   else{sortKey=k;sortDir='asc';}
   renderTable();
 }
 
-// ── Clear all ────────────────────────────────────────────────────────────────
-function clearAll() {
-  el('btn-clear').style.display='none';
-  el('clear-confirm').style.display='flex';
-}
-function confirmClear() {
-  entries=[]; editingId=null; cancelEdit(); cancelClear(); save(); renderAll();
-}
-function cancelClear() {
-  el('btn-clear').style.display='inline-flex';
-  el('clear-confirm').style.display='none';
-}
-
-// ── Export / Import ──────────────────────────────────────────────────────────
+// ── Export ────────────────────────────────────────────────────────────────────
 function exportCSV() {
-  var rows=[['Date','Brand','Stores','Notes']];
-  sorted().forEach(function(e){rows.push([e.date,e.brand,e.stores,e.notes||'']);});
+  var rows=[['Date','Deal Name','Brand','Stores','Owner']];
+  sorted().forEach(function(e){rows.push([e.date,e.dealname,e.brand,e.stores,e.owner]);});
   var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='store-signings-'+today()+'.csv'; a.click();
 }
-function importCSV(e) {
-  var file=e.target.files[0]; if(!file) return;
-  var r=new FileReader();
-  r.onload=function(ev){
-    try{
-      var lines=ev.target.result.split('\n').filter(function(l){return l.trim();});
-      var imp=lines.slice(1).map(function(line){
-        var cols=line.split(',').map(function(c){return c.trim().replace(/^"|"$/g,'').replace(/""/g,'"');});
-        var s=parseInt(cols[2],10);
-        if(!cols[0]||!cols[1]||isNaN(s)) return null;
-        return {id:uid(),date:cols[0],brand:cols[1],stores:s,notes:cols[3]||''};
-      }).filter(Boolean);
-      entries=entries.concat(imp); save(); renderAll();
-    }catch(ex){showErr('Could not parse CSV file.');}
-  };
-  r.readAsText(file); e.target.value='';
-}
 
-// ── Util ─────────────────────────────────────────────────────────────────────
+// ── Util ──────────────────────────────────────────────────────────────────────
 function el(id){return document.getElementById(id);}
 function showErr(msg){el('err-msg').textContent=msg;el('err-banner').style.display='flex';}
 function hideErr(){el('err-banner').style.display='none';}
 
-// ── Init ─────────────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────────
 (function(){
-  // Populate brand select
-  var sel=el('f-brand');
-  BRANDS.forEach(function(b){var o=document.createElement('option');o.value=b;o.textContent=b;sel.appendChild(o);});
-  // Set today's date as default
-  el('f-date').value=today();
-  // Header date
   el('hdr-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-  // Load data and render
-  entries=load();
-  renderAll();
+  if (HS_TOKEN === 'YOUR_HUBSPOT_PRIVATE_APP_TOKEN') {
+    el('hs-token-warn').style.display = 'block';
+  }
+  var loaded = loadFromCache();
+  if (loaded) renderAll();
 })();
 </script>
 </body>
