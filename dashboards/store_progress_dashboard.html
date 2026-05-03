@@ -50,6 +50,14 @@
     .prog-outer{height:12px;background:var(--border);border-radius:6px;overflow:hidden;display:flex}
     .prog-fill-closed{height:100%;background:var(--pink);transition:width .4s}
     .prog-fill-signed{height:100%;background:var(--pink-light);transition:width .4s}
+    .prog-fill-pending{height:100%;background:#F9E4EF;transition:width .4s}
+    .pill-pending{background:#EDE8F5;color:#5B3FA0}
+    .stage-tbl{width:100%;border-collapse:collapse;font-size:13px}
+    .stage-tbl th{text-align:left;padding:7px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:2px solid var(--border)}
+    .stage-tbl td{padding:9px 12px;border-bottom:1px solid var(--border)}
+    .stage-tbl tr:last-child td{border-bottom:none}
+    .stage-tbl tr:hover td{background:var(--pink-pale)}
+    .days-bar{display:inline-block;height:6px;border-radius:3px;background:var(--pink-light);vertical-align:middle;margin-left:8px}
     .prog-legend{display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--muted)}
     .prog-legend-dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
     .btn{padding:10px 20px;border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
@@ -148,13 +156,15 @@
       <span id="prog-pct" class="prog-pct">0%</span>
     </div>
     <div class="prog-outer">
-      <div id="prog-fill-closed" class="prog-fill-closed" style="width:0%"></div>
-      <div id="prog-fill-signed" class="prog-fill-signed" style="width:0%"></div>
+      <div id="prog-fill-closed"  class="prog-fill-closed"  style="width:0%"></div>
+      <div id="prog-fill-signed"  class="prog-fill-signed"  style="width:0%"></div>
+      <div id="prog-fill-pending" class="prog-fill-pending" style="width:0%"></div>
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">
       <div class="prog-legend">
         <span><span class="prog-legend-dot" style="background:var(--pink)"></span><span id="leg-closed">0 Closed Won</span></span>
-        <span><span class="prog-legend-dot" style="background:var(--pink-light)"></span><span id="leg-signed">0 Signed (Pending)</span></span>
+        <span><span class="prog-legend-dot" style="background:var(--pink-light)"></span><span id="leg-signed">0 Signed</span></span>
+        <span id="leg-pending" style="display:none"><span class="prog-legend-dot" style="background:#F9E4EF"></span>0 In Pipeline</span>
       </div>
       <div style="display:flex;gap:16px;font-size:11px;color:var(--muted)">
         <span id="prog-req">Required: 15 stores/week</span>
@@ -249,6 +259,12 @@
     </div>
   </div>
 
+  <!-- Stage Summary (Sales Pipeline only) -->
+  <div id="stage-summary-card" class="card gap" style="display:none">
+    <div class="section-title" style="margin-bottom:12px">Pipeline Stage Summary <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:8px">Q2 · Sales Pipeline · days since created</span></div>
+    <div id="stage-summary-body"></div>
+  </div>
+
   <!-- Table -->
   <div class="card">
     <div class="tbl-toolbar">
@@ -271,25 +287,34 @@
 
 // ── Per-pipeline stage names (each pipeline uses different HubSpot stage labels) ─
 var PIPELINES = {
-  'SS Pipeline':    { goal: 150, closedStage: '7. Closed Won',  signedStage: '4. Signed Agreement' },
-  'Sales Pipeline': { goal: 250, closedStage: '8. Closed Won',  signedStage: 'In SSO' },
-  'Expansion':      { goal: 40,  closedStage: '6. Closed won',  signedStage: null }
+  'SS Pipeline': {
+    goal: 150, closedStage: '7. Closed Won', signedStage: '4. Signed Agreement', pendingStages: []
+  },
+  'Sales Pipeline': {
+    goal: 250, closedStage: '8. Closed Won', signedStage: 'In SSO',
+    pendingStages: ['1. Active Pipe Lead','2. Qualified','3. Discovery & Demo','5. Negotiation','6. Sent Final Agmnt']
+  },
+  'Expansion': {
+    goal: 40, closedStage: '6. Closed won', signedStage: null, pendingStages: []
+  }
 };
 
-// Flat set of all winning stages across all pipelines — used at load time
+// Flat set of ALL countable stages across all pipelines — used at load time
 var ALL_WIN_STAGES = (function() {
   var s = {};
   Object.keys(PIPELINES).forEach(function(k) {
     var p = PIPELINES[k];
     if (p.closedStage) s[p.closedStage] = true;
     if (p.signedStage) s[p.signedStage] = true;
+    (p.pendingStages || []).forEach(function(st) { s[st] = true; });
   });
   return Object.keys(s);
 })();
 
 // Active stage names — updated by setTab() when pipeline switches
-var HS_CLOSED_STAGE = PIPELINES['SS Pipeline'].closedStage;
-var HS_SIGNED_STAGE = PIPELINES['SS Pipeline'].signedStage || '';
+var HS_CLOSED_STAGE   = PIPELINES['SS Pipeline'].closedStage;
+var HS_SIGNED_STAGE   = PIPELINES['SS Pipeline'].signedStage || '';
+var HS_PENDING_STAGES = PIPELINES['SS Pipeline'].pendingStages || [];
 var WEEKS = 10, Q2_START = '2026-04-01', Q2_END = '2026-06-10';
 var COLORS = ['#DE4990','#2C023B','#EB92BD','#B799FF','#F59E0B','#10B981'];
 var HS_CACHE_KEY = 'lula_hs_deals_cache';
@@ -403,9 +428,10 @@ function metrics() {
   var weeksRem = msLeft / (7*24*60*60*1000);
 
   var q2 = q2Entries();
-  var cumClosed = q2.filter(function(e){return e.stage===HS_CLOSED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
-  var cumSigned = q2.filter(function(e){return e.stage===HS_SIGNED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
-  var cum = cumClosed + cumSigned;
+  var cumClosed  = q2.filter(function(e){return e.stage===HS_CLOSED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
+  var cumSigned  = q2.filter(function(e){return e.stage===HS_SIGNED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
+  var cumPending = q2.filter(function(e){return HS_PENDING_STAGES.indexOf(e.stage)>=0;}).reduce(function(s,e){return s+e.stores;},0);
+  var cum = cumClosed + cumSigned + cumPending;
 
   var ago7 = fmtYMD(addDays(now,-7));
   // pace: last 7 days of Q2 deals only (capped at Q2_END)
@@ -419,7 +445,7 @@ function metrics() {
   var pct = Math.min(100,Math.round(cum/GOAL*100));
   var status = pace>=REQ_PACE ? 'on_track' : pace>=REQ_PACE*0.75 ? 'at_risk' : 'behind';
   var excluded = entries.length - q2.length;
-  return {weeksRem,cum,cumClosed,cumSigned,pace,needed,
+  return {weeksRem,cum,cumClosed,cumSigned,cumPending,pace,needed,
           reqPace,projTotal,wToGoal,projDate,wBehind,pct,status,excluded};
 }
 
@@ -452,22 +478,89 @@ function cumulData() {
 }
 
 // ── Render all ────────────────────────────────────────────────────────────────
+function median(arr) {
+  if (!arr.length) return null;
+  var s = arr.slice().sort(function(a,b){return a-b;});
+  var m = Math.floor(s.length/2);
+  return s.length%2===0 ? Math.round((s[m-1]+s[m])/2) : s[m];
+}
+
+function renderStageSummary() {
+  var card = el('stage-summary-card');
+  if (activePipeline !== 'Sales Pipeline' || !HS_PENDING_STAGES.length) {
+    card.style.display = 'none'; return;
+  }
+  card.style.display = '';
+  var now = new Date();
+  var q2 = q2Entries(); // already filtered to Sales Pipeline + Q2 dates
+
+  var rows = HS_PENDING_STAGES.map(function(stage) {
+    var deals = q2.filter(function(e){ return e.stage === stage; });
+    var days  = deals.map(function(e){
+      var d = new Date(e.date+'T00:00:00');
+      return Math.max(0, Math.floor((now - d) / 86400000));
+    });
+    return { stage: stage, count: deals.length, med: median(days) };
+  });
+
+  var maxDays = Math.max(1, Math.max.apply(null, rows.map(function(r){ return r.med||0; })));
+  var totalQ2 = rows.reduce(function(s,r){return s+r.count;},0);
+
+  var html = '<table class="stage-tbl">'
+    + '<thead><tr>'
+    + '<th>Stage</th>'
+    + '<th style="text-align:right">Q2 Deals</th>'
+    + '<th style="text-align:right">Stores</th>'
+    + '<th>Median Days in Stage</th>'
+    + '</tr></thead><tbody>';
+
+  rows.forEach(function(r) {
+    var storeCount = q2.filter(function(e){return e.stage===r.stage;}).reduce(function(s,e){return s+e.stores;},0);
+    var barW = r.med ? Math.round((r.med/maxDays)*120) : 0;
+    var medTxt = r.med !== null ? r.med+'d' : '—';
+    var barColor = r.med===null ? '' : r.med>45?'#ED8585':r.med>21?'#F59E0B':'#10B981';
+    html += '<tr>'
+      + '<td style="font-weight:600;color:var(--dark)">' + r.stage + '</td>'
+      + '<td style="text-align:right;color:var(--muted)">' + (r.count||'—') + '</td>'
+      + '<td style="text-align:right;color:var(--muted)">' + (storeCount||'—') + '</td>'
+      + '<td><span style="font-family:\'Gabarito\',sans-serif;font-size:14px;font-weight:800;color:'+(barColor||'var(--muted)')+'">'+medTxt+'</span>'
+      + (barW ? '<span class="days-bar" style="width:'+barW+'px;background:'+barColor+'"></span>' : '')
+      + '</td></tr>';
+  });
+
+  html += '</tbody><tfoot><tr style="background:var(--pink-pale)">'
+    + '<td style="font-weight:700;font-size:12px;padding:8px 12px">Total Q2 pipeline</td>'
+    + '<td style="text-align:right;font-weight:700;font-size:12px;padding:8px 12px">' + totalQ2 + '</td>'
+    + '<td colspan="2" style="padding:8px 12px;font-size:11px;color:var(--muted)">Green &lt;21d · Amber 21–45d · Red &gt;45d</td>'
+    + '</tr></tfoot></table>';
+
+  el('stage-summary-body').innerHTML = html;
+}
+
 function renderAll() {
   var m = metrics();
   renderProg(m); renderStats(m); renderStatus(m); renderProj(m);
   renderBars(); renderDonut(); renderLine();
+  renderStageSummary();
   renderTable();
 }
 
 function renderProg(m) {
-  var closedPct = Math.min(100,(m.cumClosed/GOAL)*100);
-  var signedPct = Math.min(100-closedPct,(m.cumSigned/GOAL)*100);
-  el('prog-fill-closed').style.width = closedPct.toFixed(2)+'%';
-  el('prog-fill-signed').style.width = signedPct.toFixed(2)+'%';
+  var closedPct  = Math.min(100, (m.cumClosed  / GOAL) * 100);
+  var signedPct  = Math.min(100 - closedPct,  (m.cumSigned  / GOAL) * 100);
+  var pendingPct = Math.min(100 - closedPct - signedPct, (m.cumPending / GOAL) * 100);
+  el('prog-fill-closed').style.width  = closedPct.toFixed(2)+'%';
+  el('prog-fill-signed').style.width  = signedPct.toFixed(2)+'%';
+  el('prog-fill-pending').style.width = pendingPct.toFixed(2)+'%';
   el('prog-text').textContent = m.cum+' of '+GOAL+' stores — '+activePipeline;
-  el('prog-pct').textContent = m.pct+'%';
-  el('leg-closed').textContent = m.cumClosed+' Closed Won';
-  el('leg-signed').textContent = m.cumSigned+' Signed (Pending)';
+  el('prog-pct').textContent  = m.pct+'%';
+  el('leg-closed').textContent  = m.cumClosed+' Closed Won';
+  el('leg-signed').textContent  = HS_SIGNED_STAGE ? m.cumSigned+' '+HS_SIGNED_STAGE : '';
+  var legPend = el('leg-pending');
+  if (legPend) {
+    legPend.style.display = HS_PENDING_STAGES.length ? '' : 'none';
+    legPend.textContent   = m.cumPending+' In Pipeline';
+  }
   el('prog-req').textContent = 'Required: '+(REQ_PACE % 1 === 0 ? REQ_PACE : REQ_PACE.toFixed(1))+' stores/week';
 }
 
@@ -636,8 +729,11 @@ function renderTable() {
   var tbody=rows.length===0
     ? '<tr><td colspan="6" class="tbl-empty">No deals loaded. Click “Refresh Data” above.</td></tr>'
     : rows.map(function(e){
-        var stageCls = e.stage===HS_CLOSED_STAGE ? 'pill-closed' : 'pill-signed';
-        var stageLbl = e.stage===HS_CLOSED_STAGE ? 'Closed Won' : 'Signed';
+        var stageCls, stageLbl;
+        if (e.stage===HS_CLOSED_STAGE)                      { stageCls='pill-closed';  stageLbl='Closed Won'; }
+        else if (e.stage===HS_SIGNED_STAGE)                 { stageCls='pill-signed';  stageLbl='Signed'; }
+        else if (HS_PENDING_STAGES.indexOf(e.stage)>=0)     { stageCls='pill-pending'; stageLbl=e.stage; }
+        else                                                 { stageCls='pill';         stageLbl=e.stage; }
         return '<tr>'
           +'<td style="white-space:nowrap">'+fmtFull(e.date)+'</td>'
           +'<td><span class="pill '+stageCls+'">'+stageLbl+'</span></td>'
@@ -661,8 +757,9 @@ function setTab(name) {
   activePipeline = name;
   GOAL = PIPELINES[name].goal;
   REQ_PACE = GOAL / WEEKS;
-  HS_CLOSED_STAGE = PIPELINES[name].closedStage || '';
-  HS_SIGNED_STAGE = PIPELINES[name].signedStage || '';
+  HS_CLOSED_STAGE   = PIPELINES[name].closedStage || '';
+  HS_SIGNED_STAGE   = PIPELINES[name].signedStage || '';
+  HS_PENDING_STAGES = PIPELINES[name].pendingStages || [];
   Object.keys(PIPELINES).forEach(function(k) {
     var id = 'tab-'+k.replace(/\s+/g,'_');
     var btn = document.getElementById(id);
