@@ -202,9 +202,9 @@
       <div class="section-title" style="margin-bottom:12px">Projection</div>
       <div id="proj-text" class="proj-sentence">No data yet. Click &ldquo;Refresh Data&rdquo; below to load deals from HubSpot.</div>
       <div class="proj-grid">
-        <div><div class="proj-lbl">Projected Date</div><div id="proj-date" class="proj-val">N/A</div></div>
-        <div><div class="proj-lbl">Weeks to Goal</div><div id="proj-weeks" class="proj-val">N/A</div></div>
-        <div><div class="proj-lbl">Ahead / Behind</div><div id="proj-ab" class="proj-val">N/A</div></div>
+        <div><div class="proj-lbl">Proj. End Total</div><div id="proj-date" class="proj-val">N/A</div></div>
+        <div><div class="proj-lbl">Stores Short of Goal</div><div id="proj-weeks" class="proj-val">N/A</div></div>
+        <div><div class="proj-lbl">Pace Needed to Hit Goal</div><div id="proj-ab" class="proj-val">N/A</div></div>
       </div>
     </div>
   </div>
@@ -325,6 +325,9 @@ async function refreshData() {
     var allDeals = data.deals || [];
     var fetched = allDeals.filter(function(d) {
       return d.stage === HS_CLOSED_STAGE || d.stage === HS_SIGNED_STAGE;
+    }).map(function(d) {
+      if (!d.pipeline) d.pipeline = 'SS Pipeline'; // fallback: pre-pipeline-field data defaults to SS Pipeline
+      return d;
     });
     entries = dedupeEntries(fetched);
     lastSynced = data.fetchedAt ? new Date(data.fetchedAt) : new Date();
@@ -364,6 +367,9 @@ function loadFromCache() {
     if (!cached.entries) return false;
     entries = cached.entries.filter(function(d) {
       return d.stage === HS_CLOSED_STAGE || d.stage === HS_SIGNED_STAGE;
+    }).map(function(d) {
+      if (!d.pipeline) d.pipeline = 'SS Pipeline';
+      return d;
     });
     lastSynced = cached.fetchedAt ? new Date(cached.fetchedAt) : null;
     if (lastSynced) {
@@ -483,25 +489,30 @@ function renderStatus(m) {
 }
 
 function renderProj(m) {
+  var projEnd = Math.round(m.projTotal);
+  var short   = Math.max(0, GOAL - projEnd);
+  var paceNeeded = isFinite(m.reqPace) && m.weeksRem > 0 ? m.reqPace.toFixed(1)+'/wk' : '—';
+
   var txt;
-  if(!entries.length) {
+  if (!entries.length) {
     txt = 'No data yet. Click “Refresh Data” to load Closed Won and Signed deals from HubSpot.';
-  } else if(m.status==='on_track') {
-    var ds = m.projDate ? m.projDate.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : '—';
-    txt = 'At your current pace of '+m.pace+' stores/week, you are on track to hit '+GOAL+' stores by '+ds+'.';
+  } else if (!q2Entries().length) {
+    txt = 'No '+activePipeline+' deals found in the Q2 window (Apr 1–Jun 10). Try a different pipeline tab or import the HubSpot CSV.';
+  } else if (m.status === 'on_track') {
+    txt = 'At your current pace of '+m.pace+' stores/week you are on track — projected to end Q2 with '+projEnd+' stores, '+Math.abs(short > 0 ? short : GOAL - projEnd)+' '+(short > 0 ? 'short of' : 'past')+' the '+GOAL+' goal.';
   } else {
-    var late = isFinite(m.wBehind)&&m.wBehind>0 ? m.wBehind.toFixed(1)+' weeks late' : 'behind schedule';
-    var extra = isFinite(m.reqPace) ? Math.max(0,Math.ceil(m.reqPace-m.pace)) : '—';
-    txt = 'At your current pace of '+m.pace+' stores/week, you will reach '+GOAL+' stores '+late+'. You need '+extra+' more stores this week to get back on track.';
+    txt = 'At your current pace of '+m.pace+' stores/week you\'ll end Q2 with '+projEnd+' stores — '+(short > 0 ? short+' short of the '+GOAL+' goal' : 'exceeding the goal')+'. You need '+paceNeeded+' from here to still hit '+GOAL+'.';
   }
   el('proj-text').textContent = txt;
-  el('proj-date').textContent = m.projDate ? m.projDate.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : (entries.length?'—':'N/A');
-  el('proj-weeks').textContent = m.pace>0&&isFinite(m.wToGoal) ? m.wToGoal.toFixed(1)+' wks' : (entries.length?'∞':'N/A');
+
+  // Stat tiles: Proj. End Total | Stores Short | Pace Needed
+  el('proj-date').textContent  = entries.length ? projEnd : 'N/A';
+  var shortEl = el('proj-weeks');
+  shortEl.textContent = entries.length ? (short > 0 ? short : '0 ✓') : 'N/A';
+  shortEl.style.color = entries.length && short === 0 ? '#10B981' : 'var(--dark)';
   var abEl = el('proj-ab');
-  if(m.pace>0&&isFinite(m.wBehind)) {
-    abEl.textContent = m.wBehind>0 ? m.wBehind.toFixed(1)+' behind' : Math.abs(m.wBehind).toFixed(1)+' ahead';
-    abEl.style.color = m.wBehind<=0 ? '#10B981' : 'var(--coral)';
-  } else { abEl.textContent='N/A'; abEl.style.color='var(--dark)'; }
+  abEl.textContent = entries.length ? paceNeeded : 'N/A';
+  abEl.style.color = entries.length && isFinite(m.reqPace) && m.pace >= m.reqPace ? '#10B981' : 'var(--dark)';
 }
 
 // ── SVG Bar chart ─────────────────────────────────────────────────────────────
