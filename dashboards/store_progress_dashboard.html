@@ -291,8 +291,8 @@ var PIPELINES = {
     goal: 150, closedStage: '7. Closed Won', signedStage: '4. Signed Agreement', pendingStages: []
   },
   'Sales Pipeline': {
-    goal: 250, closedStage: '8. Closed Won', signedStage: 'In SSO',
-    pendingStages: ['1. Active Pipe Lead','2. Qualified','3. Discovery & Demo','5. Negotiation','6. Sent Final Agmnt']
+    goal: 250, closedStage: '8. Closed Won', signedStage: null,
+    pendingStages: ['In SSO','1. Active Pipe Lead','2. Qualified','3. Discovery & Demo','5. Negotiation','6. Sent Final Agmnt']
   },
   'Expansion': {
     goal: 40, closedStage: '6. Closed won', signedStage: null, pendingStages: []
@@ -431,7 +431,7 @@ function metrics() {
   var cumClosed  = q2.filter(function(e){return e.stage===HS_CLOSED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
   var cumSigned  = q2.filter(function(e){return e.stage===HS_SIGNED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
   var cumPending = q2.filter(function(e){return HS_PENDING_STAGES.indexOf(e.stage)>=0;}).reduce(function(s,e){return s+e.stores;},0);
-  var cum = cumClosed + cumSigned + cumPending;
+  var cum = cumClosed + cumSigned; // pendingStages are visual-only, never counted toward goal
 
   var ago7 = fmtYMD(addDays(now,-7));
   // pace: last 7 days of Q2 deals only (capped at Q2_END)
@@ -555,7 +555,9 @@ function renderProg(m) {
   el('prog-text').textContent = m.cum+' of '+GOAL+' stores — '+activePipeline;
   el('prog-pct').textContent  = m.pct+'%';
   el('leg-closed').textContent  = m.cumClosed+' Closed Won';
-  el('leg-signed').textContent  = HS_SIGNED_STAGE ? m.cumSigned+' '+HS_SIGNED_STAGE : '';
+  var legSigned = el('leg-signed');
+  legSigned.style.display = HS_SIGNED_STAGE ? '' : 'none';
+  if (HS_SIGNED_STAGE) legSigned.textContent = m.cumSigned+' Signed';
   var legPend = el('leg-pending');
   if (legPend) {
     legPend.style.display = HS_PENDING_STAGES.length ? '' : 'none';
