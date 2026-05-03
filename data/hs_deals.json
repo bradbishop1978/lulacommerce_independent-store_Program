@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-05-03T07:02:43.287553Z",
+  "fetchedAt": "2026-05-03T07:16:04.867327Z",
   "deals": [
     {
       "id": "4014966213",
@@ -26318,8 +26318,8 @@
       "stores": 1,
       "dealname": "Tiger Mart Inc SSR",
       "owner": "Adit Gupta",
-      "stage": "7. Closed Won",
-      "pipeline": "SS Pipeline"
+      "stage": "6. Closed won",
+      "pipeline": "Expansion"
     },
     {
       "id": "59812461643",
@@ -26350,16 +26350,6 @@
       "owner": "Steve Siegel",
       "stage": "2. Qualified",
       "pipeline": "Sales Pipeline"
-    },
-    {
-      "id": "59850420026",
-      "date": "2026-04-30",
-      "brand": "Unknown",
-      "stores": 1,
-      "dealname": "test SSR",
-      "owner": "Unassigned",
-      "stage": "4. Signed Agreement",
-      "pipeline": "SS Pipeline"
     }
   ]
 }
