@@ -53,7 +53,7 @@ PROPS = ','.join([
     'pipeline',
     'createdate',
     'lula_deal_source',
-    'deal_locs_for_commit_',
+    'number_of_locations',
     'hubspot_owner_id',
 ])
 
@@ -71,7 +71,7 @@ while True:
     for d in data.get('results', []):
         p = d.get('properties', {})
 
-        raw_stores = p.get('deal_locs_for_commit_')
+        raw_stores = p.get('number_of_locations')
         try:
             stores = max(1, int(float(raw_stores))) if raw_stores else 1
         except (ValueError, TypeError):
