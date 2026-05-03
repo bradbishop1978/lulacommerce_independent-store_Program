@@ -89,6 +89,16 @@
       .header{padding:12px 16px}
     }
     @media(max-width:480px){.grid4{grid-template-columns:1fr}}
+    /* Pipeline tabs */
+    .pipeline-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+    .tab-btn{padding:10px 18px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .15s;display:flex;align-items:center;gap:8px}
+    .tab-btn:hover:not(.active){border-color:var(--pink);color:var(--pink)}
+    .tab-btn.active{background:var(--dark);color:#fff;border-color:var(--dark)}
+    .tab-goal{font-size:11px;padding:2px 7px;border-radius:10px;font-weight:700;background:rgba(255,255,255,.15)}
+    .tab-btn:not(.active) .tab-goal{background:var(--pink-pale);color:var(--pink)}
+    /* Chart horizontal scroll */
+    .chart-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .btn-danger{background:#FEE2E2;color:#991B1B;border:1.5px solid #FECACA}.btn-danger:hover{background:#FECACA}
   </style>
 </head>
 <body>
@@ -113,12 +123,19 @@
     </div>
   </div>
   <div class="hmeta">
-    <div>150 store goal &middot; 10 weeks &middot; Q2 2026</div>
+    <div id="hdr-goal">150 store goal &middot; 10 weeks &middot; Q2 2026</div>
     <div id="hdr-date" style="margin-top:4px"></div>
   </div>
 </div>
 
 <div class="main">
+  <!-- Pipeline tabs -->
+  <div class="pipeline-tabs">
+    <button id="tab-SS_Pipeline"    class="tab-btn active" onclick="setTab('SS Pipeline')">SS Pipeline <span class="tab-goal">150</span></button>
+    <button id="tab-Sales_Pipeline" class="tab-btn"        onclick="setTab('Sales Pipeline')">Sales Pipeline <span class="tab-goal">250</span></button>
+    <button id="tab-Expansion"      class="tab-btn"        onclick="setTab('Expansion')">Expansion <span class="tab-goal">40</span></button>
+  </div>
+
   <div id="err-banner" class="alert">
     <span id="err-msg"></span>
     <button onclick="hideErr()">&#x2715;</button>
@@ -140,7 +157,7 @@
         <span><span class="prog-legend-dot" style="background:var(--pink-light)"></span><span id="leg-signed">0 Signed (Pending)</span></span>
       </div>
       <div style="display:flex;gap:16px;font-size:11px;color:var(--muted)">
-        <span>Required: 15 stores/week</span>
+        <span id="prog-req">Required: 15 stores/week</span>
         <span>Jun 10 &mdash; Goal Date</span>
       </div>
     </div>
@@ -223,6 +240,7 @@
           <input type="file" accept=".csv" style="display:none" onchange="importFromCSV(event)">
         </label>
         <button class="btn btn-s btn-sm" onclick="exportCSV()">&#8595; Export CSV</button>
+        <button class="btn btn-danger btn-sm" onclick="clearAll()">&#x2715; Clear</button>
       </div>
     </div>
     <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.7">
@@ -252,19 +270,25 @@
 'use strict';
 
 // ── HubSpot stage names ───────────────────────────────────────────────────────
-// Verify internal names: HubSpot → Settings → Properties → Deals → deal stage
-// Click each stage to see its Internal name.
 var HS_CLOSED_STAGE = '7. Closed Won';
 var HS_SIGNED_STAGE = '4. Signed Agreement';
 
-// ── Goal constants ────────────────────────────────────────────────────────────
-var GOAL = 150, WEEKS = 10, Q2_START = '2026-04-01', REQ_PACE = 15.0;
+// ── Pipeline goals ────────────────────────────────────────────────────────────
+var PIPELINES = {
+  'SS Pipeline':    { goal: 150 },
+  'Sales Pipeline': { goal: 250 },
+  'Expansion':      { goal: 40  }
+};
+var WEEKS = 10, Q2_START = '2026-04-01', Q2_END = '2026-06-10';
 var COLORS = ['#DE4990','#2C023B','#EB92BD','#B799FF','#F59E0B','#10B981'];
 var HS_CACHE_KEY = 'lula_hs_deals_cache';
 
+// ── Active pipeline state (updated by setTab) ─────────────────────────────────
+var activePipeline = 'SS Pipeline';
+var GOAL = 150, REQ_PACE = 15.0;
+
 // ── State ─────────────────────────────────────────────────────────────────────
-// entries = deals where stage is closedwon OR signed
-var entries = [];
+var entries = [];   // all loaded deals (all pipelines, all dates)
 var lastSynced = null;
 var sortKey = 'date', sortDir = 'desc';
 
@@ -299,9 +323,10 @@ async function refreshData() {
     var data = await resp.json();
 
     var allDeals = data.deals || [];
-    entries = allDeals.filter(function(d) {
+    var fetched = allDeals.filter(function(d) {
       return d.stage === HS_CLOSED_STAGE || d.stage === HS_SIGNED_STAGE;
     });
+    entries = dedupeEntries(fetched);
     lastSynced = data.fetchedAt ? new Date(data.fetchedAt) : new Date();
 
     try {
@@ -352,22 +377,27 @@ function loadFromCache() {
   } catch(e) { return false; }
 }
 
+// ── Active pipeline + Q2 window filter — all metrics/charts run through this ──
+function q2Entries() {
+  return entries.filter(function(e){
+    return e.pipeline === activePipeline && e.date >= Q2_START && e.date <= Q2_END;
+  });
+}
+
 // ── Metrics ───────────────────────────────────────────────────────────────────
 function metrics() {
-  var now = new Date(), q2end = new Date('2026-06-10T23:59:59');
-  var q2 = parseD(Q2_START);
-  var daysEl = Math.max(0,(now-q2)/86400000);
-  var weeksEl = daysEl/7;
-  // Weeks remaining = exact days left until Jun 10
+  var now = new Date(), q2end = new Date(Q2_END+'T23:59:59');
   var msLeft = Math.max(0, q2end - now);
   var weeksRem = msLeft / (7*24*60*60*1000);
 
-  var cumClosed = entries.filter(function(e){return e.stage===HS_CLOSED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
-  var cumSigned = entries.filter(function(e){return e.stage===HS_SIGNED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
+  var q2 = q2Entries();
+  var cumClosed = q2.filter(function(e){return e.stage===HS_CLOSED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
+  var cumSigned = q2.filter(function(e){return e.stage===HS_SIGNED_STAGE;}).reduce(function(s,e){return s+e.stores;},0);
   var cum = cumClosed + cumSigned;
 
   var ago7 = fmtYMD(addDays(now,-7));
-  var pace = entries.filter(function(e){return e.date>=ago7;}).reduce(function(s,e){return s+e.stores;},0);
+  // pace: last 7 days of Q2 deals only (capped at Q2_END)
+  var pace = q2.filter(function(e){return e.date>=ago7;}).reduce(function(s,e){return s+e.stores;},0);
   var needed = Math.max(0,GOAL-cum);
   var reqPace = weeksRem>0 ? needed/weeksRem : Infinity;
   var projTotal = cum + pace*weeksRem;
@@ -376,14 +406,15 @@ function metrics() {
   var wBehind = isFinite(wToGoal) ? wToGoal-weeksRem : Infinity;
   var pct = Math.min(100,Math.round(cum/GOAL*100));
   var status = pace>=REQ_PACE ? 'on_track' : pace>=REQ_PACE*0.75 ? 'at_risk' : 'behind';
+  var excluded = entries.length - q2.length;
   return {weeksRem,cum,cumClosed,cumSigned,pace,needed,
-          reqPace,projTotal,wToGoal,projDate,wBehind,pct,status};
+          reqPace,projTotal,wToGoal,projDate,wBehind,pct,status,excluded};
 }
 
-// ── Chart data ────────────────────────────────────────────────────────────────
+// ── Chart data (all use Q2 window) ────────────────────────────────────────────
 function weeklyData() {
   var wks = {};
-  entries.forEach(function(e){
+  q2Entries().forEach(function(e){
     var k = fmtYMD(monday(parseD(e.date)));
     wks[k] = (wks[k]||0)+e.stores;
   });
@@ -391,19 +422,19 @@ function weeklyData() {
 }
 function brandData() {
   var t = {};
-  entries.forEach(function(e){t[e.brand]=(t[e.brand]||0)+e.stores;});
+  q2Entries().forEach(function(e){t[e.brand]=(t[e.brand]||0)+e.stores;});
   return Object.keys(t).map(function(k){return {name:k,v:t[k]};}).filter(function(d){return d.v>0;});
 }
 function cumulData() {
-  if(!entries.length) return [];
-  var q2 = parseD(Q2_START);
-  var sorted = entries.slice().sort(function(a,b){return a.date<b.date?-1:1;});
+  var q2 = q2Entries();
+  if(!q2.length) return [];
+  var q2start = parseD(Q2_START);
+  var sorted = q2.slice().sort(function(a,b){return a.date<b.date?-1:1;});
   var pts = [{wk:0,actual:0}], run = 0;
   sorted.forEach(function(e){
     run+=e.stores;
-    var days = Math.max(0,(parseD(e.date)-q2)/86400000);
-    var wk = parseFloat((days/7).toFixed(2));
-    pts.push({wk:wk,actual:run});
+    var days = Math.max(0,(parseD(e.date)-q2start)/86400000);
+    pts.push({wk:parseFloat((days/7).toFixed(2)),actual:run});
   });
   return pts;
 }
@@ -421,10 +452,11 @@ function renderProg(m) {
   var signedPct = Math.min(100-closedPct,(m.cumSigned/GOAL)*100);
   el('prog-fill-closed').style.width = closedPct.toFixed(2)+'%';
   el('prog-fill-signed').style.width = signedPct.toFixed(2)+'%';
-  el('prog-text').textContent = m.cum+' of '+GOAL+' stores signed';
+  el('prog-text').textContent = m.cum+' of '+GOAL+' stores — '+activePipeline;
   el('prog-pct').textContent = m.pct+'%';
   el('leg-closed').textContent = m.cumClosed+' Closed Won';
   el('leg-signed').textContent = m.cumSigned+' Signed (Pending)';
+  el('prog-req').textContent = 'Required: '+(REQ_PACE % 1 === 0 ? REQ_PACE : REQ_PACE.toFixed(1))+' stores/week';
 }
 
 function renderStats(m) {
@@ -476,28 +508,28 @@ function renderProj(m) {
 function renderBars() {
   var c = el('chart-bars'), data = weeklyData();
   if(!data.length){c.innerHTML='<div class="chart-empty">Refresh to see weekly chart</div>';return;}
-  var W=460,H=160,pT=12,pB=32,pL=32,pR=40;
+  var n=data.length, bW=40, barGap=18, pT=12,pB=36,pL=32,pR=48,H=160;
+  var W=Math.max(460, pL+pR+n*(bW+barGap));
   var pW=W-pL-pR, pH=H-pT-pB;
   var maxV=Math.max.apply(null,data.map(function(d){return d.v;}));
-  maxV = Math.max(maxV, REQ_PACE+2);
-  var n=data.length, bW=Math.min(40,(pW/n)*0.65), gap=(pW-bW*n)/(n+1);
-  var sx=function(i){return pL+gap*(i+1)+bW*i;};
+  maxV=Math.max(maxV,REQ_PACE+2);
+  var sx=function(i){return pL+(i*(bW+barGap))+barGap/2;};
   var sy=function(v){return pT+pH-(v/maxV)*pH;};
-  var bars='', xlbls='', ylbls='';
+  var bars='',xlbls='',ylbls='';
   data.forEach(function(d,i){
-    var x=sx(i).toFixed(1), y=sy(d.v).toFixed(1), bH=((d.v/maxV)*pH).toFixed(1);
-    bars+='<rect x="'+x+'" y="'+y+'" width="'+bW.toFixed(1)+'" height="'+bH+'" fill="#DE4990" rx="4"/>';
+    var x=sx(i).toFixed(1),y=sy(d.v).toFixed(1),bH=((d.v/maxV)*pH).toFixed(1);
+    bars+='<rect x="'+x+'" y="'+y+'" width="'+bW+'" height="'+bH+'" fill="#DE4990" rx="4"/>';
     if(d.v>0) bars+='<text x="'+(sx(i)+bW/2).toFixed(1)+'" y="'+(sy(d.v)-4).toFixed(1)+'" text-anchor="middle" font-size="10" fill="var(--dark)" font-weight="600">'+d.v+'</text>';
-    xlbls+='<text x="'+(sx(i)+bW/2).toFixed(1)+'" y="'+(H-6).toFixed(1)+'" text-anchor="middle" font-size="9" fill="var(--muted)">'+d.l+'</text>';
+    xlbls+='<text x="'+(sx(i)+bW/2).toFixed(1)+'" y="'+(H-8).toFixed(1)+'" text-anchor="middle" font-size="9" fill="var(--muted)">'+d.l+'</text>';
   });
   var refY=sy(REQ_PACE).toFixed(1);
   var refLine='<line x1="'+pL+'" y1="'+refY+'" x2="'+(W-pR)+'" y2="'+refY+'" stroke="#DE4990" stroke-dasharray="5 3" stroke-width="1.5"/>'
-    +'<text x="'+(W-pR+3)+'" y="'+(parseFloat(refY)+3).toFixed(1)+'" font-size="9" fill="#DE4990">15</text>';
+    +'<text x="'+(W-pR+3)+'" y="'+(parseFloat(refY)+3).toFixed(1)+'" font-size="9" fill="#DE4990">'+(REQ_PACE%1===0?REQ_PACE:REQ_PACE.toFixed(1))+'</text>';
   [0,Math.round(maxV/2),Math.round(maxV)].forEach(function(v){
     var y=sy(v).toFixed(1);
     ylbls+='<text x="'+(pL-4)+'" y="'+(parseFloat(y)+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--muted)">'+v+'</text>';
   });
-  c.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+ylbls+bars+refLine+xlbls+'</svg>';
+  c.innerHTML='<div class="chart-scroll"><svg viewBox="0 0 '+W+' '+H+'" style="width:'+W+'px;min-width:100%;display:block">'+ylbls+bars+refLine+xlbls+'</svg></div>';
 }
 
 // ── SVG Donut chart ───────────────────────────────────────────────────────────
@@ -565,7 +597,7 @@ function renderLine() {
 
 // ── Table ─────────────────────────────────────────────────────────────────────
 function sortedEntries() {
-  return entries.slice().sort(function(a,b){
+  return q2Entries().slice().sort(function(a,b){
     var av=sortKey==='stores'?Number(a[sortKey]):(a[sortKey]||'');
     var bv=sortKey==='stores'?Number(b[sortKey]):(b[sortKey]||'');
     if(av<bv) return sortDir==='asc'?-1:1;
@@ -575,7 +607,9 @@ function sortedEntries() {
 }
 function renderTable() {
   var m=metrics();
-  el('tbl-count').textContent=entries.length+' deal'+(entries.length===1?'':'s')+' · '+m.cum+' total stores';
+  var q2 = q2Entries();
+  var excl = m.excluded > 0 ? ' · '+m.excluded+' outside Q2/pipeline excluded' : '';
+  el('tbl-count').textContent=q2.length+' Q2 deal'+(q2.length===1?'':'s')+' · '+m.cum+' stores'+excl;
   var cols=[['date','Date'],['stage','Status'],['dealname','Deal Name'],['brand','Brand'],['stores','Stores'],['owner','Owner']];
   var thead='<tr>'+cols.map(function(c){
     var arr=sortKey===c[0]?(sortDir==='asc'?' ↑':' ↓'):'';
@@ -603,6 +637,39 @@ function sortBy(k) {
   if(sortKey===k) sortDir=sortDir==='asc'?'desc':'asc';
   else{sortKey=k;sortDir='asc';}
   renderTable();
+}
+
+// ── Pipeline tab switching ────────────────────────────────────────────────────
+function setTab(name) {
+  activePipeline = name;
+  GOAL = PIPELINES[name].goal;
+  REQ_PACE = GOAL / WEEKS;
+  // Update tab button states
+  Object.keys(PIPELINES).forEach(function(k) {
+    var id = 'tab-'+k.replace(/\s+/g,'_');
+    var btn = document.getElementById(id);
+    if (btn) btn.className = 'tab-btn' + (k === name ? ' active' : '');
+  });
+  el('hdr-goal').textContent = GOAL+' store goal · '+WEEKS+' weeks · Q2 2026';
+  renderAll();
+}
+
+// ── Deduplication (by Record ID, last loaded wins) ────────────────────────────
+function dedupeEntries(arr) {
+  var map = {};
+  arr.forEach(function(e){ map[e.id] = e; });
+  return Object.keys(map).map(function(k){ return map[k]; });
+}
+
+// ── Clear all data ────────────────────────────────────────────────────────────
+function clearAll() {
+  if (!confirm('Clear all loaded deal data from this dashboard?')) return;
+  entries = [];
+  try { localStorage.removeItem(HS_CACHE_KEY); } catch(e) {}
+  lastSynced = null;
+  el('sync-status').textContent = 'Cleared — import CSV or click Refresh to reload';
+  hideErr();
+  renderAll();
 }
 
 // ── CSV Import (HubSpot export format) ───────────────────────────────────────
@@ -645,7 +712,8 @@ function importFromCSV(event) {
           stores:   stores,
           dealname: col(row, 'Deal Name') || '—',
           owner:    col(row, 'Deal owner') || 'Unassigned',
-          stage:    stage
+          stage:    stage,
+          pipeline: col(row, 'Pipeline') || 'SS Pipeline'
         };
       }).filter(function(d) {
         return d && (d.stage === HS_CLOSED_STAGE || d.stage === HS_SIGNED_STAGE);
@@ -657,13 +725,14 @@ function importFromCSV(event) {
         return;
       }
 
-      entries = imported;
+      var prevCount = entries.length;
+      entries = dedupeEntries(entries.concat(imported));
       lastSynced = new Date();
       try { localStorage.setItem(HS_CACHE_KEY, JSON.stringify({ fetchedAt: lastSynced.toISOString(), entries: entries })); } catch(e) {}
 
       var nC = entries.filter(function(d){return d.stage===HS_CLOSED_STAGE;}).length;
       var nS = entries.filter(function(d){return d.stage===HS_SIGNED_STAGE;}).length;
-      el('sync-status').textContent = 'Imported from CSV · '+entries.length+' deals ('+nC+' closed won · '+nS+' signed)';
+      el('sync-status').textContent = 'Imported '+imported.length+' from CSV · '+entries.length+' total after dedupe ('+nC+' closed won · '+nS+' signed)';
       hideErr();
       renderAll();
     } catch(ex) { showErr('CSV parse error: ' + ex.message); }
@@ -693,7 +762,7 @@ function hideErr(){el('err-banner').style.display='none';}
 (function(){
   el('hdr-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
   loadFromCache();
-  renderAll(); // always render so Weeks Left shows the real number
+  setTab('SS Pipeline'); // sets GOAL, REQ_PACE, tab styles, then calls renderAll
 })();
 </script>
 </body>
