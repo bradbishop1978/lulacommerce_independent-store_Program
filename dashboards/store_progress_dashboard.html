@@ -181,9 +181,9 @@
       <div class="stat-sub">fully activated</div>
     </div>
     <div class="card">
-      <div class="stat-label">Signed (Pending)</div>
+      <div class="stat-label" id="lbl-signed">Signed (Pending)</div>
       <div id="s-signed" class="stat-val" style="color:var(--pink-light)">0</div>
-      <div class="stat-sub">payment not yet received</div>
+      <div class="stat-sub" id="sub-signed">payment not yet received</div>
     </div>
     <div class="card">
       <div class="stat-label">Total Progress</div>
@@ -201,6 +201,7 @@
   <div class="grid2">
     <div id="status-card" class="status-card behind">
       <div id="status-badge" class="badge behind">&#x2193; Behind</div>
+      <div id="status-pipeline-note" style="display:none;font-size:12px;color:var(--muted);margin-bottom:12px;padding:6px 10px;background:var(--pink-pale);border-radius:6px"></div>
       <div class="sm-grid">
         <div><div class="sm-lbl">Current Pace (7d)</div><div id="sm-pace" class="sm-val">0 /wk</div></div>
         <div><div class="sm-lbl">Required Pace</div><div id="sm-req" class="sm-val">&#x2014;</div></div>
@@ -434,8 +435,10 @@ function metrics() {
   var cum = cumClosed + cumSigned; // pendingStages are visual-only, never counted toward goal
 
   var ago7 = fmtYMD(addDays(now,-7));
-  // pace: last 7 days of Q2 deals only (capped at Q2_END)
-  var pace = q2.filter(function(e){return e.date>=ago7;}).reduce(function(s,e){return s+e.stores;},0);
+  // pace: last 7 days, counting only stages that contribute to cum (closed + signed — never pending)
+  var pace = q2.filter(function(e){
+    return e.date>=ago7 && (e.stage===HS_CLOSED_STAGE || e.stage===HS_SIGNED_STAGE);
+  }).reduce(function(s,e){return s+e.stores;},0);
   var needed = Math.max(0,GOAL-cum);
   var reqPace = weeksRem>0 ? needed/weeksRem : Infinity;
   var projTotal = cum + pace*weeksRem;
@@ -454,9 +457,13 @@ function weeklyData() {
   var wks = {};
   q2Entries().forEach(function(e){
     var k = fmtYMD(monday(parseD(e.date)));
-    wks[k] = (wks[k]||0)+e.stores;
+    if (!wks[k]) wks[k] = {closed:0, pipeline:0};
+    if (e.stage === HS_CLOSED_STAGE) wks[k].closed  += e.stores;
+    else                             wks[k].pipeline += e.stores;
   });
-  return Object.keys(wks).sort().map(function(k){return {l:fmtShort(k),v:wks[k]};});
+  return Object.keys(wks).sort().map(function(k){
+    return {l:fmtShort(k), v:wks[k].closed+wks[k].pipeline, closed:wks[k].closed, pipeline:wks[k].pipeline};
+  });
 }
 function brandData() {
   var t = {};
@@ -567,11 +574,14 @@ function renderProg(m) {
 }
 
 function renderStats(m) {
+  var hasPending = HS_PENDING_STAGES.length > 0;
   el('s-closed').textContent = m.cumClosed;
-  el('s-signed').textContent = m.cumSigned;
-  el('s-total').textContent = m.cum;
+  el('lbl-signed').textContent = hasPending ? 'In Pipeline' : 'Signed (Pending)';
+  el('sub-signed').textContent = hasPending ? 'pending Q2 stages' : 'payment not yet received';
+  el('s-signed').textContent   = hasPending ? m.cumPending : m.cumSigned;
+  el('s-total').textContent    = m.cum;
   el('s-remaining').textContent = m.needed+' remaining to goal';
-  el('s-weeks').textContent = m.weeksRem.toFixed(1);
+  el('s-weeks').textContent    = m.weeksRem.toFixed(1);
 }
 
 function renderStatus(m) {
@@ -587,6 +597,13 @@ function renderStatus(m) {
   gapEl.textContent = gap!==null ? (gap>=0?'+':'')+gap.toFixed(1) : '—';
   gapEl.style.color = gap!==null&&gap>=0 ? '#10B981' : 'var(--coral)';
   el('sm-proj').textContent = Math.round(m.projTotal);
+  var note = el('status-pipeline-note');
+  if (HS_PENDING_STAGES.length > 0 && m.cumPending > 0) {
+    note.style.display = '';
+    note.textContent = m.cumPending+' stores in pipeline — pace and projection count Closed Won only';
+  } else {
+    note.style.display = 'none';
+  }
 }
 
 function renderProj(m) {
@@ -627,11 +644,28 @@ function renderBars() {
   maxV=Math.max(maxV,REQ_PACE+2);
   var sx=function(i){return pL+(i*(bW+barGap))+barGap/2;};
   var sy=function(v){return pT+pH-(v/maxV)*pH;};
+  var dual = HS_PENDING_STAGES.length > 0;
   var bars='',xlbls='',ylbls='';
   data.forEach(function(d,i){
-    var x=sx(i).toFixed(1),y=sy(d.v).toFixed(1),bH=((d.v/maxV)*pH).toFixed(1);
-    bars+='<rect x="'+x+'" y="'+y+'" width="'+bW+'" height="'+bH+'" fill="#DE4990" rx="4"/>';
-    if(d.v>0) bars+='<text x="'+(sx(i)+bW/2).toFixed(1)+'" y="'+(sy(d.v)-4).toFixed(1)+'" text-anchor="middle" font-size="10" fill="var(--dark)" font-weight="600">'+d.v+'</text>';
+    var x=sx(i).toFixed(1);
+    if (dual) {
+      // Pale bar = full pipeline height (closed + pending)
+      if (d.v > 0) {
+        var tH=((d.v/maxV)*pH).toFixed(1), tY=sy(d.v).toFixed(1);
+        bars+='<rect x="'+x+'" y="'+tY+'" width="'+bW+'" height="'+tH+'" fill="#F9E4EF" rx="4"/>';
+        bars+='<text x="'+(sx(i)+bW/2).toFixed(1)+'" y="'+(sy(d.v)-4).toFixed(1)+'" text-anchor="middle" font-size="10" fill="var(--muted)">'+d.v+'</text>';
+      }
+      // Dark pink bar = Closed Won overlaid in front
+      if (d.closed > 0) {
+        var cH=((d.closed/maxV)*pH).toFixed(1), cY=sy(d.closed).toFixed(1);
+        bars+='<rect x="'+x+'" y="'+cY+'" width="'+bW+'" height="'+cH+'" fill="#DE4990" rx="4"/>';
+        bars+='<text x="'+(sx(i)+bW/2).toFixed(1)+'" y="'+(sy(d.closed)-4).toFixed(1)+'" text-anchor="middle" font-size="10" fill="var(--dark)" font-weight="700">'+d.closed+'</text>';
+      }
+    } else {
+      var y=sy(d.v).toFixed(1),bH=((d.v/maxV)*pH).toFixed(1);
+      bars+='<rect x="'+x+'" y="'+y+'" width="'+bW+'" height="'+bH+'" fill="#DE4990" rx="4"/>';
+      if(d.v>0) bars+='<text x="'+(sx(i)+bW/2).toFixed(1)+'" y="'+(sy(d.v)-4).toFixed(1)+'" text-anchor="middle" font-size="10" fill="var(--dark)" font-weight="600">'+d.v+'</text>';
+    }
     xlbls+='<text x="'+(sx(i)+bW/2).toFixed(1)+'" y="'+(H-8).toFixed(1)+'" text-anchor="middle" font-size="9" fill="var(--muted)">'+d.l+'</text>';
   });
   var refY=sy(REQ_PACE).toFixed(1);
