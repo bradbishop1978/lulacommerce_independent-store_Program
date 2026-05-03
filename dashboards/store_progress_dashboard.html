@@ -269,16 +269,27 @@
 <script>
 'use strict';
 
-// ── HubSpot stage names ───────────────────────────────────────────────────────
-var HS_CLOSED_STAGE = '7. Closed Won';
-var HS_SIGNED_STAGE = '4. Signed Agreement';
-
-// ── Pipeline goals ────────────────────────────────────────────────────────────
+// ── Per-pipeline stage names (each pipeline uses different HubSpot stage labels) ─
 var PIPELINES = {
-  'SS Pipeline':    { goal: 150 },
-  'Sales Pipeline': { goal: 250 },
-  'Expansion':      { goal: 40  }
+  'SS Pipeline':    { goal: 150, closedStage: '7. Closed Won',  signedStage: '4. Signed Agreement' },
+  'Sales Pipeline': { goal: 250, closedStage: '8. Closed Won',  signedStage: 'In SSO' },
+  'Expansion':      { goal: 40,  closedStage: '6. Closed won',  signedStage: null }
 };
+
+// Flat set of all winning stages across all pipelines — used at load time
+var ALL_WIN_STAGES = (function() {
+  var s = {};
+  Object.keys(PIPELINES).forEach(function(k) {
+    var p = PIPELINES[k];
+    if (p.closedStage) s[p.closedStage] = true;
+    if (p.signedStage) s[p.signedStage] = true;
+  });
+  return Object.keys(s);
+})();
+
+// Active stage names — updated by setTab() when pipeline switches
+var HS_CLOSED_STAGE = PIPELINES['SS Pipeline'].closedStage;
+var HS_SIGNED_STAGE = PIPELINES['SS Pipeline'].signedStage || '';
 var WEEKS = 10, Q2_START = '2026-04-01', Q2_END = '2026-06-10';
 var COLORS = ['#DE4990','#2C023B','#EB92BD','#B799FF','#F59E0B','#10B981'];
 var HS_CACHE_KEY = 'lula_hs_deals_cache';
@@ -324,7 +335,7 @@ async function refreshData() {
 
     var allDeals = data.deals || [];
     var fetched = allDeals.filter(function(d) {
-      return d.stage === HS_CLOSED_STAGE || d.stage === HS_SIGNED_STAGE;
+      return ALL_WIN_STAGES.indexOf(d.stage) >= 0;
     }).map(function(d) {
       if (!d.pipeline) d.pipeline = 'SS Pipeline'; // fallback: pre-pipeline-field data defaults to SS Pipeline
       return d;
@@ -336,16 +347,13 @@ async function refreshData() {
       localStorage.setItem(HS_CACHE_KEY, JSON.stringify({ fetchedAt: lastSynced.toISOString(), entries: entries }));
     } catch(e) {}
 
-    var nClosed = entries.filter(function(d){return d.stage===HS_CLOSED_STAGE;}).length;
-    var nSigned = entries.filter(function(d){return d.stage===HS_SIGNED_STAGE;}).length;
     el('sync-status').textContent = 'Data as of '
       +lastSynced.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})
-      +' · '+nClosed+' closed won · '+nSigned+' signed';
+      +' · '+entries.length+' winning deals across all pipelines';
 
-    // Warn if no signed-stage deals found (likely the stage name needs updating)
-    if (allDeals.length > 0 && nSigned === 0) {
-      var stages = [...new Set(allDeals.map(function(d){return d.stage;}))].join(', ');
-      showErr('No deals matched the "'+HS_SIGNED_STAGE+'" stage. Stages found in your data: '+stages+'. Update HS_SIGNED_STAGE in the script if needed.');
+    if (allDeals.length > 0 && entries.length === 0) {
+      var foundStages = [...new Set(allDeals.map(function(d){return d.stage;}))].join(', ');
+      showErr('No deals matched any winning stage. Expected: '+ALL_WIN_STAGES.join(', ')+'. Found: '+foundStages);
     }
 
     renderAll();
@@ -366,18 +374,16 @@ function loadFromCache() {
     var cached = JSON.parse(raw);
     if (!cached.entries) return false;
     entries = cached.entries.filter(function(d) {
-      return d.stage === HS_CLOSED_STAGE || d.stage === HS_SIGNED_STAGE;
+      return ALL_WIN_STAGES.indexOf(d.stage) >= 0;
     }).map(function(d) {
       if (!d.pipeline) d.pipeline = 'SS Pipeline';
       return d;
     });
     lastSynced = cached.fetchedAt ? new Date(cached.fetchedAt) : null;
     if (lastSynced) {
-      var nClosed = entries.filter(function(d){return d.stage===HS_CLOSED_STAGE;}).length;
-      var nSigned = entries.filter(function(d){return d.stage===HS_SIGNED_STAGE;}).length;
       el('sync-status').textContent = 'Cached: '
         +lastSynced.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})
-        +' · '+nClosed+' closed won · '+nSigned+' signed — click Refresh to update';
+        +' · '+entries.length+' winning deals — click Refresh to update';
     }
     return entries.length > 0;
   } catch(e) { return false; }
@@ -655,7 +661,8 @@ function setTab(name) {
   activePipeline = name;
   GOAL = PIPELINES[name].goal;
   REQ_PACE = GOAL / WEEKS;
-  // Update tab button states
+  HS_CLOSED_STAGE = PIPELINES[name].closedStage || '';
+  HS_SIGNED_STAGE = PIPELINES[name].signedStage || '';
   Object.keys(PIPELINES).forEach(function(k) {
     var id = 'tab-'+k.replace(/\s+/g,'_');
     var btn = document.getElementById(id);
@@ -727,11 +734,11 @@ function importFromCSV(event) {
           pipeline: col(row, 'Pipeline') || 'SS Pipeline'
         };
       }).filter(function(d) {
-        return d && (d.stage === HS_CLOSED_STAGE || d.stage === HS_SIGNED_STAGE);
+        return d && ALL_WIN_STAGES.indexOf(d.stage) >= 0;
       });
 
       if (!imported.length) {
-        showErr('No matching deals found. CSV must contain Deal Stage values "'+HS_SIGNED_STAGE+'" or "'+HS_CLOSED_STAGE+'". Got: '
+        showErr('No matching deals found. CSV must contain a Deal Stage from: '+ALL_WIN_STAGES.join(', ')+'. Got: '
           + [...new Set(lines.slice(1).map(function(l){ var r=parseCSVRow(l); var i=headers.indexOf('Deal Stage'); return i>=0?r[i]:'?'; }))].join(', '));
         return;
       }
