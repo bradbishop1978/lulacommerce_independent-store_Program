@@ -227,7 +227,7 @@
       <div id="chart-bars"><div class="chart-empty">Refresh to see weekly chart</div></div>
     </div>
     <div class="card">
-      <div class="chart-title">By Brand</div>
+      <div class="chart-title" id="chart-donut-title">By Brand</div>
       <div id="chart-donut"><div class="chart-empty">Refresh to see brand breakdown</div></div>
     </div>
   </div>
@@ -475,11 +475,12 @@ function cumulData() {
   if(!q2.length) return [];
   var q2start = parseD(Q2_START);
   var sorted = q2.slice().sort(function(a,b){return a.date<b.date?-1:1;});
-  var pts = [{wk:0,actual:0}], run = 0;
+  var pts = [{wk:0,actual:0,closed:0}], run=0, runClosed=0;
   sorted.forEach(function(e){
-    run+=e.stores;
+    run += e.stores;
+    if (e.stage === HS_CLOSED_STAGE) runClosed += e.stores;
     var days = Math.max(0,(parseD(e.date)-q2start)/86400000);
-    pts.push({wk:parseFloat((days/7).toFixed(2)),actual:run});
+    pts.push({wk:parseFloat((days/7).toFixed(2)), actual:run, closed:runClosed});
   });
   return pts;
 }
@@ -681,6 +682,7 @@ function renderBars() {
 // ── SVG Donut chart ───────────────────────────────────────────────────────────
 function renderDonut() {
   var c = el('chart-donut'), data = brandData();
+  el('chart-donut-title').textContent = HS_PENDING_STAGES.length > 0 ? 'By Lead Source' : 'By Brand';
   if(!data.length){c.innerHTML='<div class="chart-empty">Refresh to see brand breakdown</div>';return;}
   var total=data.reduce(function(s,d){return s+d.v;},0);
   var R=44, cx=60, cy=60, circ=2*Math.PI*R;
@@ -729,15 +731,33 @@ function renderLine() {
   var goalLine='<line x1="'+pL+'" y1="'+gy+'" x2="'+(W-pR)+'" y2="'+gy+'" stroke="#10B981" stroke-dasharray="5 3" stroke-width="1"/>'
     +'<text x="'+(W-pR+3)+'" y="'+(parseFloat(gy)+3).toFixed(1)+'" font-size="9" fill="#10B981">'+GOAL+'</text>';
   var reqLine='<line x1="'+sx(0).toFixed(1)+'" y1="'+sy(0).toFixed(1)+'" x2="'+sx(10).toFixed(1)+'" y2="'+sy(GOAL).toFixed(1)+'" stroke="#AEAEAE" stroke-dasharray="6 3" stroke-width="1.5"/>';
-  var pts=data.map(function(d){return sx(d.wk).toFixed(1)+','+sy(d.actual).toFixed(1);}).join(' ');
-  var actualLine='<polyline points="'+pts+'" fill="none" stroke="#DE4990" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-  var dots=data.slice(1).map(function(d){return '<circle cx="'+sx(d.wk).toFixed(1)+'" cy="'+sy(d.actual).toFixed(1)+'" r="3" fill="#DE4990"/>';}).join('');
-  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+grid+xt+yt+goalLine+reqLine+actualLine+dots+'</svg>';
-  var lgnd='<div class="chart-legend">'
-    +'<span><span style="display:inline-block;width:18px;height:3px;background:#DE4990;vertical-align:middle;border-radius:2px;margin-right:4px"></span>Actual</span>'
-    +'<span><span style="display:inline-block;width:18px;border-top:2px dashed #AEAEAE;vertical-align:middle;margin-right:4px"></span>Required Pace</span>'
-    +'<span><span style="display:inline-block;width:18px;border-top:2px dashed #10B981;vertical-align:middle;margin-right:4px"></span>Goal (150)</span>'
-    +'</div>';
+  var dual = HS_PENDING_STAGES.length > 0;
+  var lines='', dots='';
+  if (dual) {
+    // Pale line = all pipeline (total actual)
+    var ppts=data.map(function(d){return sx(d.wk).toFixed(1)+','+sy(d.actual).toFixed(1);}).join(' ');
+    lines+='<polyline points="'+ppts+'" fill="none" stroke="#F9E4EF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    data.slice(1).forEach(function(d){ lines+='<circle cx="'+sx(d.wk).toFixed(1)+'" cy="'+sy(d.actual).toFixed(1)+'" r="3" fill="#F9E4EF"/>'; });
+    // Dark pink line = Closed Won only
+    var cpts=data.map(function(d){return sx(d.wk).toFixed(1)+','+sy(d.closed).toFixed(1);}).join(' ');
+    lines+='<polyline points="'+cpts+'" fill="none" stroke="#DE4990" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    data.slice(1).forEach(function(d){ if(d.closed>0) lines+='<circle cx="'+sx(d.wk).toFixed(1)+'" cy="'+sy(d.closed).toFixed(1)+'" r="3" fill="#DE4990"/>'; });
+  } else {
+    var pts=data.map(function(d){return sx(d.wk).toFixed(1)+','+sy(d.actual).toFixed(1);}).join(' ');
+    lines='<polyline points="'+pts+'" fill="none" stroke="#DE4990" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    dots=data.slice(1).map(function(d){return '<circle cx="'+sx(d.wk).toFixed(1)+'" cy="'+sy(d.actual).toFixed(1)+'" r="3" fill="#DE4990"/>';}).join('');
+  }
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">'+grid+xt+yt+goalLine+reqLine+lines+dots+'</svg>';
+  var lgnd='<div class="chart-legend">';
+  if (dual) {
+    lgnd+='<span><span style="display:inline-block;width:18px;height:3px;background:#DE4990;vertical-align:middle;border-radius:2px;margin-right:4px"></span>Closed Won</span>'
+         +'<span><span style="display:inline-block;width:18px;height:3px;background:#F9E4EF;vertical-align:middle;border-radius:2px;margin-right:4px"></span>In Pipeline</span>';
+  } else {
+    lgnd+='<span><span style="display:inline-block;width:18px;height:3px;background:#DE4990;vertical-align:middle;border-radius:2px;margin-right:4px"></span>Actual</span>';
+  }
+  lgnd+='<span><span style="display:inline-block;width:18px;border-top:2px dashed #AEAEAE;vertical-align:middle;margin-right:4px"></span>Required Pace</span>'
+       +'<span><span style="display:inline-block;width:18px;border-top:2px dashed #10B981;vertical-align:middle;margin-right:4px"></span>Goal ('+GOAL+')</span>'
+       +'</div>';
   c.innerHTML=svg+lgnd;
 }
 
