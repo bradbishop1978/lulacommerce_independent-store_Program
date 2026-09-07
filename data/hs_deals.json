@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-07T14:08:39.624614Z",
+  "fetchedAt": "2026-09-07T19:46:49.702873Z",
   "deals": [
     {
       "id": "4014966213",
@@ -29895,6 +29895,17 @@
       "brand": "Unknown",
       "stores": 1,
       "dealname": "Lula SSO \u2014 245 GA-49",
+      "owner": "Unassigned",
+      "stage": "4. Signed Agreement",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "64746654252",
+      "date": "2026-09-07",
+      "close_date": "",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Lula SSO \u2014 1711 E Nob Hill Blvd",
       "owner": "Unassigned",
       "stage": "4. Signed Agreement",
       "pipeline": "SSO Pipeline"
