@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-08T12:46:54.120704Z",
+  "fetchedAt": "2026-09-08T19:21:18.141013Z",
   "deals": [
     {
       "id": "4014966213",
@@ -29891,12 +29891,12 @@
     {
       "id": "64595134569",
       "date": "2026-09-03",
-      "close_date": "",
+      "close_date": "2026-09-08",
       "brand": "Unknown",
       "stores": 1,
       "dealname": "Lula SSO \u2014 245 GA-49",
-      "owner": "Unassigned",
-      "stage": "4. Signed Agreement",
+      "owner": "Vince Meyer",
+      "stage": "7. Closed Won",
       "pipeline": "SSO Pipeline"
     },
     {
@@ -29906,7 +29906,7 @@
       "brand": "Unknown",
       "stores": 1,
       "dealname": "Lula SSO \u2014 1711 E Nob Hill Blvd",
-      "owner": "Unassigned",
+      "owner": "Vince Meyer",
       "stage": "4. Signed Agreement",
       "pipeline": "SSO Pipeline"
     }
