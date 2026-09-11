@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-11T19:04:48.331499Z",
+  "fetchedAt": "2026-09-11T22:23:08.520173Z",
   "deals": [
     {
       "id": "4014966213",
@@ -29940,6 +29940,17 @@
       "stores": 1,
       "dealname": "Lula SSO \u2014 3435 Minton Rd",
       "owner": "Adit Gupta",
+      "stage": "4. Signed Agreement",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "64986613891",
+      "date": "2026-09-11",
+      "close_date": "2026-09-11",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Lula SSO \u2014 2741 Gateway Rd",
+      "owner": "Vince Meyer",
       "stage": "4. Signed Agreement",
       "pipeline": "SSO Pipeline"
     }
