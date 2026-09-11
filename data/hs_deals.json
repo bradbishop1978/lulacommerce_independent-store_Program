@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-11T12:44:16.001359Z",
+  "fetchedAt": "2026-09-11T19:04:48.331499Z",
   "deals": [
     {
       "id": "4014966213",
@@ -29918,6 +29918,28 @@
       "stores": 1,
       "dealname": "Lula SSO \u2014 337 E 9th St",
       "owner": "Brad Penoliar",
+      "stage": "4. Signed Agreement",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "64928500826",
+      "date": "2026-09-11",
+      "close_date": "",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Lula SSO \u2014 4690 W Flagler St",
+      "owner": "Unassigned",
+      "stage": "4. Signed Agreement",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "64945296759",
+      "date": "2026-09-11",
+      "close_date": "",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Lula SSO \u2014 3435 Minton Rd",
+      "owner": "Adit Gupta",
       "stage": "4. Signed Agreement",
       "pipeline": "SSO Pipeline"
     }
