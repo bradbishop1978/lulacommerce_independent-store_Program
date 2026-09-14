@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-14T04:26:24.047060Z",
+  "fetchedAt": "2026-09-14T14:54:48.119105Z",
   "deals": [
     {
       "id": "4014966213",
@@ -29902,12 +29902,12 @@
     {
       "id": "64746654252",
       "date": "2026-09-07",
-      "close_date": "",
+      "close_date": "2026-09-14",
       "brand": "Unknown",
       "stores": 1,
-      "dealname": "Lula SSO \u2014 1711 E Nob Hill Blvd",
+      "dealname": "Lula SSO \u2014 Rohnit Thind (Circle K - Washima - WA)",
       "owner": "Vince Meyer",
-      "stage": "4. Signed Agreement",
+      "stage": "7. Closed Won",
       "pipeline": "SSO Pipeline"
     },
     {
@@ -29915,21 +29915,21 @@
       "date": "2026-09-09",
       "close_date": "",
       "brand": "Unknown",
-      "stores": 1,
-      "dealname": "Lula SSO \u2014 337 E 9th St",
-      "owner": "Brad Penoliar",
+      "stores": 2,
+      "dealname": "Lula SSO \u2014 Juggy Singh (Circle K - San Bernardino - CA)",
+      "owner": "Vince Meyer",
       "stage": "4. Signed Agreement",
       "pipeline": "SSO Pipeline"
     },
     {
       "id": "64928500826",
       "date": "2026-09-11",
-      "close_date": "",
+      "close_date": "2026-09-14",
       "brand": "Unknown",
-      "stores": 1,
-      "dealname": "Lula SSO \u2014 4690 W Flagler St",
-      "owner": "Unassigned",
-      "stage": "4. Signed Agreement",
+      "stores": 2,
+      "dealname": "Lula SSO \u2014 Hassaan Khan (Circle K - Miami, FL)",
+      "owner": "Vince Meyer",
+      "stage": "7. Closed Won",
       "pipeline": "SSO Pipeline"
     },
     {
@@ -29937,9 +29937,9 @@
       "date": "2026-09-11",
       "close_date": "",
       "brand": "Unknown",
-      "stores": 1,
-      "dealname": "Lula SSO \u2014 3435 Minton Rd",
-      "owner": "Adit Gupta",
+      "stores": 2,
+      "dealname": "Lula SSO \u2014 Mohammed Hossain (KKC - Melbourne, FL)",
+      "owner": "Vince Meyer",
       "stage": "4. Signed Agreement",
       "pipeline": "SSO Pipeline"
     },
@@ -29952,6 +29952,17 @@
       "dealname": "Lula SSO \u2014 2741 Gateway Rd",
       "owner": "Vince Meyer",
       "stage": "4. Signed Agreement",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "65012031838",
+      "date": "2026-09-14",
+      "close_date": "2026-09-14",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Lula SSO \u2014 100 S Chowchilla Blvd",
+      "owner": "Vince Meyer",
+      "stage": "7. Closed Won",
       "pipeline": "SSO Pipeline"
     }
   ]
