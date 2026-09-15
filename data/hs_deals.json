@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-15T19:37:23.124939Z",
+  "fetchedAt": "2026-09-15T22:48:03.470735Z",
   "deals": [
     {
       "id": "4014966213",
@@ -28312,7 +28312,7 @@
       "stores": 170,
       "dealname": "Shell /Timewise Primary",
       "owner": "Steve Siegel",
-      "stage": "3. Discovery & Demo",
+      "stage": "4. ROI & Outstanding Questions",
       "pipeline": "Sales Pipeline"
     },
     {
@@ -29104,7 +29104,7 @@
       "stores": 15,
       "dealname": "Pride Stores - PRIMARY",
       "owner": "Steve Siegel",
-      "stage": "4. ROI & Outstanding Questions",
+      "stage": "3. Discovery & Demo",
       "pipeline": "Sales Pipeline"
     },
     {
@@ -29137,7 +29137,7 @@
       "stores": 1,
       "dealname": "Pride Stores - 5 store test",
       "owner": "Steve Siegel",
-      "stage": "4. ROI & Outstanding Questions",
+      "stage": "3. Discovery & Demo",
       "pipeline": "Sales Pipeline"
     },
     {
@@ -29665,7 +29665,7 @@
       "stores": 10,
       "dealname": "Major Oil Co - PRIMARY (1P only--up to 10 stores)",
       "owner": "Steve Siegel",
-      "stage": "6. Sent Final Agmnt",
+      "stage": "5. Negotiation",
       "pipeline": "Sales Pipeline"
     },
     {
@@ -29698,7 +29698,7 @@
       "stores": 250,
       "dealname": "Coremark foodservice 1P and 3P-25 stores min",
       "owner": "Steve Siegel",
-      "stage": "4. ROI & Outstanding Questions",
+      "stage": "6. Sent Final Agmnt",
       "pipeline": "Sales Pipeline"
     },
     {
@@ -30016,6 +30016,17 @@
       "brand": "Unknown",
       "stores": 1,
       "dealname": "Test-Brad Bishop (Prime - f'real Shake Shop)",
+      "owner": "Unassigned",
+      "stage": "4. Signed Agreement",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "65060589622",
+      "date": "2026-09-15",
+      "close_date": "",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Sonny  Grewal (Prime - Circle K)",
       "owner": "Unassigned",
       "stage": "4. Signed Agreement",
       "pipeline": "SSO Pipeline"
