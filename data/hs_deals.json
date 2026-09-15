@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-14T20:14:09.357781Z",
+  "fetchedAt": "2026-09-15T04:26:57.187450Z",
   "deals": [
     {
       "id": "4014966213",
@@ -29963,6 +29963,17 @@
       "dealname": "Lula SSO \u2014 100 S Chowchilla Blvd",
       "owner": "Vince Meyer",
       "stage": "7. Closed Won",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "65045625887",
+      "date": "2026-09-15",
+      "close_date": "",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Griselda Ocana (Prime - Circle K)",
+      "owner": "Vince Meyer",
+      "stage": "4. Signed Agreement",
       "pipeline": "SSO Pipeline"
     }
   ]
