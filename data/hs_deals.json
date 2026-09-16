@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-16T13:20:24.697478Z",
+  "fetchedAt": "2026-09-16T19:28:26.987911Z",
   "deals": [
     {
       "id": "4014966213",
@@ -29972,6 +29972,17 @@
       "brand": "Event/Show - (Any)",
       "stores": 14,
       "dealname": "Thriftway Super Stops - PRIMARY",
+      "owner": "Steve Siegel",
+      "stage": "2. Qualified",
+      "pipeline": "Sales Pipeline"
+    },
+    {
+      "id": "65027785251",
+      "date": "2026-09-16",
+      "close_date": "2026-10-31",
+      "brand": "Event/Show - (Any)",
+      "stores": 1,
+      "dealname": "Perry Brothers Oil - PRIMARY",
       "owner": "Steve Siegel",
       "stage": "2. Qualified",
       "pipeline": "Sales Pipeline"
