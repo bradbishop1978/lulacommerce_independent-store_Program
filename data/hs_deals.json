@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-17T13:16:32.939147Z",
+  "fetchedAt": "2026-09-17T19:39:08.941820Z",
   "deals": [
     {
       "id": "4014966213",
@@ -30049,6 +30049,17 @@
       "brand": "Unknown",
       "stores": 1,
       "dealname": "Sonny  Grewal (Prime - Circle K)",
+      "owner": "Vince Meyer",
+      "stage": "7. Closed Won",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "65080351049",
+      "date": "2026-09-17",
+      "close_date": "2026-09-17",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Sumit kapal (Prime - Shell)",
       "owner": "Vince Meyer",
       "stage": "7. Closed Won",
       "pipeline": "SSO Pipeline"
