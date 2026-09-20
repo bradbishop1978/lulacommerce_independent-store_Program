@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-19T22:16:07.562391Z",
+  "fetchedAt": "2026-09-20T04:28:29.381155Z",
   "deals": [
     {
       "id": "4014966213",
@@ -30071,6 +30071,17 @@
       "brand": "Unknown",
       "stores": 1,
       "dealname": "Tyler (Prime - Circle K)",
+      "owner": "Unassigned",
+      "stage": "4. Signed Agreement",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "65138431796",
+      "date": "2026-09-20",
+      "close_date": "",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "STEPHAN ZOLIAN (Prime - Circle K)",
       "owner": "Unassigned",
       "stage": "4. Signed Agreement",
       "pipeline": "SSO Pipeline"
