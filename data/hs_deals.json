@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-21T14:59:45.140395Z",
+  "fetchedAt": "2026-09-21T20:20:44.654767Z",
   "deals": [
     {
       "id": "4014966213",
@@ -30084,6 +30084,39 @@
       "dealname": "STEPHAN ZOLIAN (Prime - Circle K)",
       "owner": "Vince Meyer",
       "stage": "7. Closed Won",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "65160514323",
+      "date": "2026-09-21",
+      "close_date": "",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Dillan Ammori (Prime - Shell)",
+      "owner": "Unassigned",
+      "stage": "4. Signed Agreement",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "65162107392",
+      "date": "2026-09-21",
+      "close_date": "",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Mashiur  Rahman (Lula Solo)",
+      "owner": "Vince Meyer",
+      "stage": "4. Signed Agreement",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "65163233901",
+      "date": "2026-09-21",
+      "close_date": "",
+      "brand": "Unknown",
+      "stores": 2,
+      "dealname": "Jacob Yousef (Prime - Circle K)",
+      "owner": "Vince Meyer",
+      "stage": "4. Signed Agreement",
       "pipeline": "SSO Pipeline"
     }
   ]
