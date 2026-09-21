@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-21T04:26:44.131282Z",
+  "fetchedAt": "2026-09-21T14:59:45.140395Z",
   "deals": [
     {
       "id": "4014966213",
@@ -30078,12 +30078,12 @@
     {
       "id": "65138431796",
       "date": "2026-09-20",
-      "close_date": "",
+      "close_date": "2026-09-21",
       "brand": "Unknown",
-      "stores": 1,
+      "stores": 2,
       "dealname": "STEPHAN ZOLIAN (Prime - Circle K)",
-      "owner": "Unassigned",
-      "stage": "4. Signed Agreement",
+      "owner": "Vince Meyer",
+      "stage": "7. Closed Won",
       "pipeline": "SSO Pipeline"
     }
   ]
