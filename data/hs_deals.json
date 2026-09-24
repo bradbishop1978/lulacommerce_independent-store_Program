@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-24T04:15:39.416052Z",
+  "fetchedAt": "2026-09-24T13:26:41.755793Z",
   "deals": [
     {
       "id": "4014966213",
@@ -30126,6 +30126,17 @@
       "brand": "Unknown",
       "stores": 1,
       "dealname": "Riya  Vasya (Lula Solo)",
+      "owner": "Vince Meyer",
+      "stage": "7. Closed Won",
+      "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "65221156194",
+      "date": "2026-09-24",
+      "close_date": "2026-09-24",
+      "brand": "Unknown",
+      "stores": 1,
+      "dealname": "Anil Gupta (Prime - Circle K)",
       "owner": "Vince Meyer",
       "stage": "7. Closed Won",
       "pipeline": "SSO Pipeline"
