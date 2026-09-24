@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-24T13:26:41.755793Z",
+  "fetchedAt": "2026-09-24T19:54:45.128469Z",
   "deals": [
     {
       "id": "4014966213",
@@ -30118,6 +30118,17 @@
       "owner": "Vince Meyer",
       "stage": "7. Closed Won",
       "pipeline": "SSO Pipeline"
+    },
+    {
+      "id": "65204563991",
+      "date": "2026-09-24",
+      "close_date": "2026-10-02",
+      "brand": "Other Target List",
+      "stores": 1,
+      "dealname": "Winback - 5 sites",
+      "owner": "Vince Meyer",
+      "stage": "Discovery",
+      "pipeline": "SMB Pipeline"
     },
     {
       "id": "65217107639",
